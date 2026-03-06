@@ -51,6 +51,29 @@
 | `/fireauto-secure` | 내 코드 보안 취약점 자동 점검 |
 | `/fireauto-ui` | DaisyUI로 예쁜 UI 만들기 |
 
+## 보일러플레이트와 함께 쓰기
+
+fireauto는 단독으로도 쓸 수 있지만, **[FireShip Starter Kit](https://github.com/imgompanda/FireShipZip3)**과 함께 쓰면 더 강력해요.
+
+보일러플레이트에 인증, 결제, AI, 이메일이 다 들어있고, fireauto로 SEO 점검하고 보안 체크하고 UI 만들면 바로 런칭할 수 있어요.
+
+```bash
+# 보일러플레이트 다운로드
+git clone https://github.com/imgompanda/FireShipZip3.git
+cd FireShipZip3
+
+# Claude Code에서 fireauto 설치
+claude
+/plugin marketplace add imgompanda/fireauto
+/plugin install fireauto@fireauto
+
+# 이제 /fireauto-seo, /fireauto-secure 등을 바로 쓸 수 있어요
+```
+
+[보일러플레이트 자세히 보기 →](https://github.com/imgompanda/FireShipZip3)
+
+---
+
 ## 먼저 준비할 것
 
 ### 1. Claude Code 설치
