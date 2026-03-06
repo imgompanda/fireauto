@@ -3,64 +3,84 @@ name: fireauto-team
 description: >
   This skill should be used when the user asks to "팀 에이전트", "team agent",
   "병렬 작업", "parallel work", "워크스트림", "workstream", "여러 에이전트",
-  "동시에 작업", "에이전트 팀", "에이전트 간 대화", "team chat", or
-  mentions multi-agent parallel workflows or agent coordination.
+  "동시에 작업", "에이전트 팀", "에이전트 간 대화", "team chat",
+  "컴퍼니", "company model", or mentions multi-agent parallel workflows
+  or agent coordination.
 ---
 
-# 팀 에이전트 패턴
+# 컴퍼니 모델 팀 시스템
 
-복잡한 작업을 여러 워크스트림으로 분할하여 병렬로 실행하는 패턴. 각 워크스트림은 독립된 에이전트가 담당하며, 코디네이터가 전체를 조율한다.
+Claude Code 빌트인 팀 기능을 활용한 멀티 에이전트 협업 패턴.
+
+## 핵심 개념: 컴퍼니 모델
+
+회사처럼 동작하는 에이전트 조직:
+
+- **CEO (메인 에이전트)**: 방향 설정, 태스크 분배, 승인/반려, 최종 검토
+- **팀원 (서브 에이전트)**: 각자 담당 업무 수행, **서로 SendMessage로 실시간 논의**
+- **공유 태스크 보드**: TaskCreate/TaskUpdate로 진행 상황 관리
+
+## 빌트인 도구
+
+| 도구 | 역할 |
+|------|------|
+| `TeamCreate` | 팀 생성, 공유 태스크 보드 초기화 |
+| `TeamDelete` | 팀 삭제 및 리소스 정리 |
+| `TaskCreate` | 태스크 등록 (담당자 지정) |
+| `TaskUpdate` | 태스크 상태 변경 |
+| `TaskList` | 전체 태스크 조회 |
+| `TaskGet` | 개별 태스크 상세 조회 |
+| `SendMessage` | 에이전트 간 DM (자동 전달, 유휴 에이전트도 깨움) |
+| `Agent` | 팀원 에이전트 스폰 (`team_name` 파라미터 필수) |
+
+## Git Worktree 격리
+
+`Agent` 호출 시 `isolation: "worktree"` 옵션을 사용하면:
+
+- 각 에이전트가 **독립된 git 브랜치 + 작업 디렉토리**에서 작업
+- 서로의 코드 변경이 충돌하지 않음
+- 완료 후 메인 브랜치에 순차적으로 병합
+- 마치 각 개발자가 자기 PC에서 독립적으로 개발하는 것과 같음
+
+## 에이전트 간 대화 (SendMessage)
+
+핵심 차별점: 에이전트들이 **파일이 아닌 SendMessage로 직접 대화**합니다.
+
+```
+frontend-dev -> backend-dev:
+  "UserProfile에 avatarUrl 필드 추가해줄 수 있어?"
+
+backend-dev -> frontend-dev:
+  "추가했어. nullable이니 fallback 처리 부탁."
+
+frontend-dev -> CEO:
+  "pagination 방식을 결정해주세요. offset vs cursor."
+
+CEO -> all:
+  "offset으로 가겠습니다."
+```
 
 ## 병렬 vs 순차 판단
 
-### 병렬이 적합한 경우
-- 독립적인 기능 개발 (서로 다른 페이지, 컴포넌트, API)
-- 프론트엔드/백엔드 분리 (인터페이스 계약 명확 시)
-- 대규모 리팩토링 (모듈별 분리)
-- 다국어 콘텐츠 (언어별 분산)
+### 병렬 (컴퍼니 모델 적합)
+- 독립적인 기능/페이지/API 개발
+- 프론트엔드/백엔드 분리
+- 대규모 리팩토링 (모듈별)
 
-### 순차가 적합한 경우
-- 강한 의존성 (앞선 작업의 결과가 다음의 입력)
+### 순차 (단일 에이전트 적합)
+- 강한 의존성 (앞선 작업 결과가 다음 입력)
 - 동일 파일 집중 수정
-- 설계 → 구현 → 테스트 단계적 진행
 - 분할 오버헤드 > 작업 자체
 
-## 워크스트림 설계 원칙
+## 팀 구성 가이드
 
-1. **경계 명확화**: "이 워크스트림은 이 디렉토리만 수정"
-2. **인터페이스 선행 정의**: 공유 타입, API 스키마를 먼저 확정
-3. **적절한 크기**: 2개(가장 안정) ~ 5개(대규모만)
-4. **의존성 최소화**: 의존성 많으면 병렬 이점 상실
-
-## 에이전트 격리
-
-### Git Worktree (권장)
-```bash
-git worktree add .worktrees/ws-1-frontend -b fireauto/ws-1-frontend
-git worktree add .worktrees/ws-2-backend -b fireauto/ws-2-backend
-```
-
-### 병합 순서
-1. 인터페이스/타입 → 2. 핵심 로직 → 3. UI → 4. 테스트/문서
-
-## 에이전트 간 대화
-
-`.claude/team-chat/` 디렉토리를 통해 에이전트가 소통한다:
-- `board.md` — 전체 메시지 보드
-- `decisions.md` — 코디네이터 결정 사항
-
-메시지 형식: `[HH:MM] @ws-{N}-{name} → @수신자: 내용`
-
-## 실전 사례
-
-| 사례 | 워크스트림 | 분할 |
-|------|-----------|------|
-| 랜딩페이지 리뉴얼 | 3개 | 히어로+네비, 가격+기능, 반응형+접근성 |
-| API + 프론트 | 2개 | 백엔드 API, 프론트엔드 UI |
-| 대규모 리팩토링 | 4개 | 타입, 컴포넌트, 상태관리, 테스트 |
+| 시나리오 | 팀원 | 분할 기준 |
+|---------|------|----------|
+| API + 프론트 | 2명 | backend-dev, frontend-dev |
+| 풀스택 기능 | 3명 | backend, frontend, tester |
+| 대규모 리팩토링 | 4명 | type-lead, core, ui, test |
 
 ## 커맨드
 
-- `/fireauto-team` — 팀 구성 및 실행
-- `/fireauto-team-status` — 진행 상태 확인
-- `/fireauto-team-chat` — 에이전트 간 대화 확인/전송
+- `/fireauto-team` - 팀 구성, 실행, 대화 관리 (대화 기능 통합)
+- `/fireauto-team-status` - 태스크 보드 및 진행 상태 확인
