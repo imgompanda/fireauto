@@ -14,6 +14,16 @@
   <a href="#설치하기">설치하기</a> · <a href="#어떤-기능이-있나요">기능</a> · <a href="#하나씩-알아볼게요">사용법</a> · <a href="#자주-묻는-질문">FAQ</a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/imgompanda/fireauto/stargazers"><img src="https://img.shields.io/github/stars/imgompanda/fireauto?style=social" alt="GitHub Stars" /></a>
+  <a href="https://github.com/imgompanda/fireauto/releases/latest"><img src="https://img.shields.io/github/v/release/imgompanda/fireauto" alt="Latest Release" /></a>
+  <a href="https://github.com/imgompanda/fireauto/blob/main/LICENSE"><img src="https://img.shields.io/github/license/imgompanda/fireauto" alt="License" /></a>
+</p>
+
+<p align="center">
+  도움이 됐다면 ⭐ Star를 눌러주세요. 업데이트 소식을 받아볼 수 있어요.
+</p>
+
 ---
 
 ## 이게 뭔가요?
@@ -35,8 +45,7 @@
 |--------|-----------|
 | `/fireauto-prd` | 아이디어 한 줄로 PRD 문서 만들기 |
 | `/fireauto-research` | 레딧에서 내 고객 찾기 |
-| `/fireauto-team` | 여러 AI가 동시에 일하게 하기 |
-| `/fireauto-team-chat` | AI끼리 대화하며 협업하기 |
+| `/fireauto-team` | 여러 AI가 동시에 일하고, 서로 대화하며 협업하기 |
 | `/fireauto-team-status` | 지금 AI가 뭐 하고 있는지 확인하기 |
 | `/fireauto-seo` | 내 사이트 SEO 자동 점검 |
 | `/fireauto-secure` | 내 코드 보안 취약점 자동 점검 |
@@ -188,22 +197,17 @@ Claude Code 안에서 이렇게 입력해보세요.
 
 각자 맡은 부분을 동시에 작업하고, 끝나면 자동으로 합쳐줘요.
 
-### `/fireauto-team-chat` — AI끼리 대화하며 협업하기
-
-여러 AI가 일할 때, 서로 물어볼 게 생기잖아요.
+**컴퍼니 모델** — AI끼리 대화도 해요.
 
 ```
-/fireauto-team-chat
+[프론트엔드 → 백엔드] "UserProfile에 avatarUrl 추가해줄 수 있어?"
+[백엔드 → 프론트엔드] "추가했어. null일 수 있으니 fallback 처리 부탁해."
+[프론트엔드 → CEO] "pagination 방식 결정해주세요."
+[CEO → 전체] "offset 방식으로 가겠습니다."
 ```
 
-실제 대화 예시:
-```
-[14:35] @프론트엔드 → @백엔드: UserProfile에 avatarUrl 추가해줄 수 있어요?
-[14:40] @백엔드 → @프론트엔드: 추가했어요. null일 수 있으니 fallback 처리 부탁해요.
-[14:45] @코디네이터 → @전체: 공유 타입은 src/types/shared.ts에서만 수정해주세요.
-```
-
-메시지 보드를 확인하고, 직접 메시지를 보낼 수도 있어요.
+CEO(나)는 방향만 잡으면, 팀원 AI들이 SendMessage로 알아서 논의해요.
+각자 독립된 공간(git worktree)에서 작업하니까 코드 충돌도 없어요.
 
 ### `/fireauto-seo` — 내 사이트 SEO 자동 점검
 
@@ -276,12 +280,11 @@ DaisyUI v5 컴포넌트를 최대한 활용해서 UI를 만들어줘요.
 fireauto/
 ├── .claude-plugin/
 │   └── plugin.json          # 플러그인 설정 파일
-├── commands/                # 슬래시 커맨드 (8개)
+├── commands/                # 슬래시 커맨드 (7개)
 │   ├── fireauto-prd.md
 │   ├── fireauto-research.md
 │   ├── fireauto-team.md
 │   ├── fireauto-team-status.md
-│   ├── fireauto-team-chat.md
 │   ├── fireauto-seo.md
 │   ├── fireauto-secure.md
 │   └── fireauto-ui.md
