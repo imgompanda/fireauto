@@ -86,23 +86,29 @@ cd my-app && npm install && cp .env.example .env.local
 3. /designer    → DaisyUI로 UI를 만들어요
 ```
 
+### UI/UX를 개선하고 싶다면
+
+```
+4. /uiux-upgrade   → 내 서비스 UI/UX를 자동으로 점검하고 고쳐줘요
+```
+
 ### 서비스를 거의 다 만들었다면
 
 ```
-4. /seo-manager     → SEO가 제대로 되어있는지 점검해요
-5. /security-guard  → 보안 구멍이 없는지 확인해요
+5. /seo-manager     → SEO가 제대로 되어있는지 점검해요
+6. /security-guard  → 보안 구멍이 없는지 확인해요
 ```
 
 ### 규모가 큰 작업이라면
 
 ```
-6. /ceo   → 여러 AI가 동시에 작업하고 서로 대화해요
+7. /team   → 여러 AI가 동시에 작업하고 서로 대화해요
 ```
 
 ### 프롬프트를 잘 못 쓰겠다면
 
 ```
-7. /loop  → 프롬프트 하나만 던지면 AI가 알아서 반복하며 완성해요
+8. /loop  → 프롬프트 하나만 던지면 AI가 알아서 반복하며 완성해요
 ```
 
 ---
@@ -113,11 +119,12 @@ cd my-app && npm install && cp .env.example .env.local
 |--------|------|-----------|
 | `/planner` | 기획자 | 아이디어 한 줄 → 상세 PRD 문서 |
 | `/researcher` | 리서처 | 레딧에서 고객 찾기 + 리드 스코어링 |
-| `/ceo` | CEO | AI 팀 구성 + 병렬 작업 + 에이전트 간 대화 |
-| `/ceo-status` | CEO 비서 | AI 팀 진행 상황 확인 |
+| `/team` | 팀 리더 | AI 팀 구성 + 병렬 작업 + 에이전트 간 대화 |
+| `/team-status` | 팀 리더 비서 | AI 팀 진행 상황 확인 |
 | `/seo-manager` | SEO 관리자 | SEO 7개 영역 자동 점검 |
 | `/security-guard` | 보안 담당 | 코드 보안 취약점 8개 카테고리 점검 |
 | `/designer` | 디자이너 | DaisyUI UI 구축 / 마이그레이션 / 테마 |
+| `/uiux-upgrade` | UX 개선자 | 내 서비스 UI/UX 감사 + 자동 수정 |
 | `/loop` | 반복 실행기 | AI가 반복하며 작업 완성 (ralph-loop 기반) |
 | `/cancel-loop` | | 실행 중인 루프 중단 |
 | `/fireship-install` | | FireShip 보일러플레이트 자동 설치 |
@@ -152,19 +159,19 @@ cd my-app && npm install && cp .env.example .env.local
 - **고충 분류** — 비용, 시간, 복잡성, 규제, 스케일 카테고리별 정리
 - **요약 리포트** — 마크다운 문서
 
-### `/ceo` — CEO (컴퍼니 모델)
+### `/team` — 팀 리더 (컴퍼니 모델)
 
 여러 AI가 동시에 작업하고, 서로 대화하며 협업해요.
 
 ```
-/ceo
+/team
 ```
 
 - AI끼리 SendMessage로 실시간 논의
 - 각자 독립된 공간(git worktree)에서 작업 → 코드 충돌 없음
 - 작업 완료 후 자동으로 순차 병합
 
-팀 상태 확인: `/ceo-status`
+팀 상태 확인: `/team-status`
 
 ### `/seo-manager` — SEO 관리자
 
@@ -202,6 +209,18 @@ DaisyUI v5 기반으로 UI를 만들거나 바꿔줘요.
 - **build** — 처음부터 DaisyUI로 UI 만들기
 - **migrate** — shadcn/ui → DaisyUI 자동 변환
 - **theme** — oklch() 컬러로 테마 설정
+
+### `/uiux-upgrade` — UX 개선자
+
+내 프로젝트의 UI/UX를 8개 카테고리로 감사하고, 발견된 문제를 직접 코드로 고쳐줘요.
+
+```
+/uiux-upgrade
+```
+
+감사 항목: 다크/라이트 모드 호환, 반응형 디자인, 접근성, 로딩 상태, 폼 UX, 네비게이션 일관성, 타이포그래피, 애니메이션
+
+P0(긴급) ~ P3(개선 권장)으로 분류하고, 범위를 선택하면 자동으로 수정해줘요.
 
 ### `/loop` — 반복 실행기
 
