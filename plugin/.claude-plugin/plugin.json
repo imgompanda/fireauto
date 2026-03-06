@@ -3,14 +3,9 @@
   "version": "1.0.0",
   "description": "AI 서비스 40개를 만들면서 실전에서 검증된 자동화 플러그인 모음. 레딧 수요조사, 팀 에이전트, SEO 점검, 보안 감사, DaisyUI 디자인.",
   "author": {
-    "name": "FreAiner",
-    "url": "https://fireship.me"
+    "name": "FreAiner"
   },
-  "homepage": "https://fireship.me",
   "repository": "https://github.com/imgompanda/fireauto",
   "license": "MIT",
-  "keywords": ["seo", "security", "daisyui", "reddit", "team-agent", "automation"],
-  "commands": "./commands/",
-  "agents": "./agents/",
-  "skills": "./skills/"
+  "keywords": ["seo", "security", "daisyui", "reddit", "team-agent", "automation"]
 }
