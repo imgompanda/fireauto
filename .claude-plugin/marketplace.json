@@ -1,0 +1,18 @@
+{
+  "name": "imgompanda",
+  "owner": {
+    "name": "FreAiner"
+  },
+  "metadata": {
+    "description": "AI 서비스 40개를 만들면서 검증된 자동화 플러그인",
+    "homepage": "https://fireship.me"
+  },
+  "plugins": [
+    {
+      "name": "fireauto",
+      "version": "1.0.0",
+      "source": "./plugin",
+      "description": "Claude Code 자동화 플러그인 — PRD, 레딧 리서치, 팀 에이전트, SEO, 보안, UI"
+    }
+  ]
+}
