@@ -1,5 +1,5 @@
 ---
-name: fireauto-lsp
+name: fireauto-lsp-guide
 description: >
   "정의로 이동", "참조 찾기", "심볼 검색", "타입 확인", "호출 계층",
   "코드 찾기", "함수 찾기", "어디서 쓰이는지", "어디에 정의된",

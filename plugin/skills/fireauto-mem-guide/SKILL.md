@@ -1,5 +1,5 @@
 ---
-name: fireauto-mem
+name: fireauto-mem-guide
 description: >
   "메모리 관리", "memory", "기억", "컨텍스트 저장", "세션 간 기억",
   "히스토리", "작업 기록", "claude-mem", "remember", "이전 작업 불러오기"

@@ -1,5 +1,5 @@
 ---
-name: fireauto-secure
+name: fireauto-secure-guide
 description: >
   "보안 점검", "security check", "security audit", "취약점 분석",
   "vulnerability scan", "보안 감사", "시크릿 노출", "API 보안", "인증 점검",

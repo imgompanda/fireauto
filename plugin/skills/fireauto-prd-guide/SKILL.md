@@ -1,5 +1,5 @@
 ---
-name: fireauto-prd
+name: fireauto-prd-guide
 description: >
   "PRD 작성", "기획서", "제품 기획", "product requirements", "아이디어 구체화",
   "서비스 기획", "feasibility", "실현 가능성", "API 조사", "기술 스택 추천",

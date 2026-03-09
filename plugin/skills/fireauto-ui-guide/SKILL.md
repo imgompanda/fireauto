@@ -1,5 +1,5 @@
 ---
-name: fireauto-ui
+name: fireauto-ui-guide
 description: >
   "DaisyUI", "daisyui", "UI 마이그레이션", "UI migration",
   "shadcn to daisyui", "테마 설정", "theme", "컴포넌트 변환",

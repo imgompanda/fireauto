@@ -1,5 +1,5 @@
 ---
-name: fireauto-team
+name: fireauto-team-guide
 description: >
   "팀 에이전트", "team agent", "병렬 작업", "parallel work", "워크스트림",
   "workstream", "여러 에이전트", "동시에 작업", "에이전트 팀",

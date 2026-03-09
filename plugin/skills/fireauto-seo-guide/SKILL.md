@@ -1,5 +1,5 @@
 ---
-name: fireauto-seo
+name: fireauto-seo-guide
 description: >
   "SEO 감사", "SEO audit", "기술 SEO", "technical SEO", "구조화 데이터",
   "schema markup", "JSON-LD", "robots.txt", "sitemap", "메타 태그",

@@ -1,5 +1,5 @@
 ---
-name: fireauto-research
+name: fireauto-research-guide
 description: >
   "레딧 리서치", "reddit research", "수요조사", "시장조사", "리드 스코어링",
   "lead scoring", "market research", "레딧에서 고객 찾기", "레딧 데이터 수집",
