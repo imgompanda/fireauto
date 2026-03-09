@@ -109,6 +109,18 @@ npm install -g typescript typescript-language-server
 | 백엔드 (Python) | `pyright-lsp@claude-plugins-official` |
 | iOS | `swift-lsp@claude-plugins-official` |
 
+### LSP 자동 사용 규칙 추가:
+
+유저의 `~/.claude/CLAUDE.md`를 읽고, 아래 내용이 없으면 추가하세요:
+
+```markdown
+- 코드 탐색 시 LSP 도구를 Grep/Glob보다 먼저 사용할 것. 정의 찾기(goToDefinition), 참조 찾기(findReferences), 심볼 검색(workspaceSymbol), 호출 추적(incomingCalls/outgoingCalls)은 LSP로 먼저 시도하고, 텍스트/패턴 검색만 Grep 사용.
+```
+
+이미 비슷한 내용이 있으면 건너뛰세요.
+`~/.claude/CLAUDE.md` 파일이 없으면 새로 만드세요.
+기존 내용이 있으면 **맨 아래에 추가**하세요. 절대 기존 내용을 덮어쓰지 마세요.
+
 ---
 
 ## Step 3: 알림 훅 설정
