@@ -1,5 +1,33 @@
 # Changelog
 
+## v1.2.0 (2026-04-05)
+
+### 새로운 기능
+
+- **MCP 메모리 시스템** — 작업 기록이 자동으로 저장되고, 다음 세션에서 검색 가능
+  - SQLite(sql.js WASM) 기반 로컬 데이터베이스 — 네이티브 빌드 불필요
+  - MCP 서버 4개 도구: `memory-search`, `memory-timeline`, `memory-save`, `memory-detail`
+  - FTS4 전문 검색으로 한국어 키워드 검색 지원
+  - Express Worker HTTP 서버 (포트 37888) + SSE 실시간 스트리밍
+  - Hook 자동 기록: SessionStart(Worker 시작), PostToolUse(도구 사용 기록), Stop(세션 요약)
+
+- **`/memory-install` 커맨드** — 메모리 시스템 원클릭 설치
+  - 의존성 자동 설치 (sql.js, express, @modelcontextprotocol/sdk)
+  - DB 초기화, MCP 서버 등록, Hook 설정 한 번에 완료
+
+- **한국어 메모리 뷰어** — `http://localhost:37888`
+  - 단일 HTML 파일 (20KB, 외부 의존성 없음)
+  - 다크/라이트 테마 (시스템 설정 자동 감지)
+  - SSE 실시간 업데이트, 검색, 프로젝트 필터
+  - 메모리 타입별 아이콘/색상 (bugfix, feature, pattern, decision, gotcha, refactor)
+
+### 기술 설계
+
+- claude-mem 아키텍처 참고, 경량화 설계
+- Agent SDK 미사용 → 토큰 비용 0원, Hook에서 직접 구조화
+- Chroma 벡터 DB 대신 SQLite FTS4 → 의존성 85% 감소
+- sql.js(WASM) 사용 → 네이티브 빌드 실패 가능성 0%
+
 ## v1.1.1 (2026-03-09)
 
 ### 새로운 기능
