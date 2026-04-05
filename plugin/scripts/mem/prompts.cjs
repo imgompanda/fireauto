@@ -42,8 +42,27 @@ function buildInitPrompt(project, sessionId, userPrompt) {
   </files_modified>
 </observation>
 
-중요하지 않은 작업은 <skip reason="이유"/> 로 건너뛰세요.
-타입 설명:
+## 핵심 원칙
+배운 것(LEARNED), 만든 것(BUILT), 고친 것(FIXED), 배포한 것(DEPLOYED), 설정한 것(CONFIGURED)만 기록하세요.
+도구 사용 자체("Edit를 실행했다")가 아니라, 그 결과로 무엇이 달라졌는지를 기록하세요.
+title에 도구 이름(Edit, Bash, Write)을 넣지 마세요. 사람이 읽기 좋은 제목을 쓰세요.
+
+## 건너뛸 때 (skip)
+다음은 <skip reason="이유"/> 로 건너뛰세요:
+- 빈 결과나 상태 확인만 한 경우 (git status, ls)
+- 에러 없는 단순 설치 (npm install 성공)
+- 이미 기록한 작업의 반복
+- 파일 조회만 한 경우 (Read, Grep 결과)
+- 출력이 없거나 의미 없는 경우
+
+## 기록할 때
+- 코드를 의미있게 변경했을 때 → type에 맞게 기록
+- 버그 원인을 찾았을 때 → bugfix + 원인/해결 narrative
+- 패턴을 발견했을 때 → pattern + 재사용 가능한 설명
+- 설계 결정을 내렸을 때 → decision + 이유
+- 삽질 후 원인을 알게 됐을 때 → gotcha + 주의사항
+
+타입:
 - bugfix: 버그 수정
 - feature: 새 기능 추가
 - pattern: 패턴/모범 사례 발견

@@ -1,6 +1,6 @@
 #!/bin/bash
 # fireauto-mem: 도구 사용 관찰 훅
-# stdin으로 전체 JSON을 받아 Worker에 전송
+# 의미 있는 작업만 선별하여 Worker��� 전송
 
 WORKER_URL="http://localhost:37888"
 
@@ -12,7 +12,7 @@ if ! curl -sf "$WORKER_URL/api/health" > /dev/null 2>&1; then
   exit 0
 fi
 
-# 도구 이름 추출 (jq가 없을 수 있으므로 node 사용)
+# 도구 이름 추출
 TOOL_NAME=$(echo "$INPUT" | node -e "
   let d='';
   process.stdin.on('data',c=>d+=c);
@@ -24,14 +24,47 @@ TOOL_NAME=$(echo "$INPUT" | node -e "
   });
 ")
 
-# 무시할 도구들 (너무 빈번하거나 노이즈가 많은 것)
+# ── 필터링: 의미 있는 도구만 통과 ──
+# claude-mem 원칙: "배운/만든/고친/배포한/설정한 것만 기록"
+# 코드를 변경하는 도구만 통과시킴
 case "$TOOL_NAME" in
-  Read|Glob|Grep|TaskList|TaskGet|TaskCreate|TaskUpdate|SendMessage)
+  Edit|Write|NotebookEdit)
+    # 코드 변경 — 항상 기록
+    ;;
+  Bash)
+    # Bash는 git commit, npm install 같은 의미 있는 명령만 통과
+    # git status, ls, echo 같은 단순 조회는 제외
+    HAS_MEANINGFUL=$(echo "$INPUT" | node -e "
+      let d='';
+      process.stdin.on('data',c=>d+=c);
+      process.stdin.on('end',()=>{
+        try{
+          const j=JSON.parse(d);
+          const cmd=typeof j.tool_input==='object'?(j.tool_input.command||''):(j.tool_input||'');
+          // 의미 있는 명령어 패턴
+          if(/git (commit|push|merge|rebase|checkout -b)/i.test(cmd)) { console.log('yes'); return; }
+          if(/npm (install|run build|run test|publish)/i.test(cmd)) { console.log('yes'); return; }
+          if(/npx|yarn|pnpm|bun (install|run|build)/i.test(cmd)) { console.log('yes'); return; }
+          if(/docker|kubectl|terraform|aws|gcloud/i.test(cmd)) { console.log('yes'); return; }
+          if(/curl.*-X (POST|PUT|DELETE|PATCH)/i.test(cmd)) { console.log('yes'); return; }
+          if(/chmod|mkdir.*-p|rm -r/i.test(cmd)) { console.log('yes'); return; }
+          console.log('no');
+        }catch{console.log('no');}
+      });
+    ")
+    if [ "$HAS_MEANINGFUL" != "yes" ]; then
+      exit 0
+    fi
+    ;;
+  *)
+    # Read, Glob, Grep, TaskList, TaskGet, TaskCreate, TaskUpdate,
+    # SendMessage, ToolSearch, WebSearch, WebFetch, Agent, TeamCreate,
+    # TeamDelete 등 — 조회/관리용 도구는 기록하지 않음
     exit 0
     ;;
 esac
 
-# 전체 관찰 데이터를 Worker에 전송 (tool_name, tool_input, tool_output 포함)
+# Worker에 전송
 echo "$INPUT" | curl -sf -X POST "$WORKER_URL/api/memories" \
   -H "Content-Type: application/json" \
   -d @- > /dev/null 2>&1
