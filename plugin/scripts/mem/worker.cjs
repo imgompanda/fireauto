@@ -1,4 +1,4 @@
-// ── fireauto-mem Worker ── Express HTTP server for memory system ──
+// ── fireauto-mem Worker v2 ── Express HTTP server for memory system ──
 // Usage: node worker.cjs start | stop
 
 const express = require('express');
@@ -22,6 +22,80 @@ let dbMod = null;
 function loadDbModule() {
   if (!dbMod) dbMod = require('./db.cjs');
   return dbMod;
+}
+
+// ── SDK Agent module (lazy, graceful if absent) ───────────────
+let sdkAgentMod = null;
+function loadSdkAgent() {
+  if (sdkAgentMod === undefined) return null;
+  if (sdkAgentMod) return sdkAgentMod;
+  try {
+    sdkAgentMod = require('./sdk-agent.cjs');
+    return sdkAgentMod;
+  } catch {
+    sdkAgentMod = undefined; // 없으면 다시 시도하지 않음
+    return null;
+  }
+}
+
+// ── Relations module (lazy, graceful if absent) ───────────────
+let relationsMod = null;
+let relationsModLoaded = false;
+function loadRelations() {
+  if (relationsModLoaded) return relationsMod;
+  relationsModLoaded = true;
+  try {
+    relationsMod = require('./relations.cjs');
+  } catch {
+    relationsMod = null;
+  }
+  return relationsMod;
+}
+
+// ── Health-check module (lazy, graceful if absent) ────────────
+let healthCheckMod = null;
+let healthCheckModLoaded = false;
+function loadHealthCheck() {
+  if (healthCheckModLoaded) return healthCheckMod;
+  healthCheckModLoaded = true;
+  try {
+    healthCheckMod = require('./health-check.cjs');
+  } catch {
+    healthCheckMod = null;
+  }
+  return healthCheckMod;
+}
+
+// ── AI-enriched memory update ─────────────────────────────────
+function updateMemoryWithAI(db, id, aiResult) {
+  try {
+    db.run(
+      `UPDATE memories SET
+        subtitle = COALESCE(?, subtitle),
+        narrative = COALESCE(?, narrative),
+        facts = COALESCE(?, facts),
+        concepts = COALESCE(?, concepts),
+        type = COALESCE(?, type)
+      WHERE id = ?`,
+      [
+        aiResult.subtitle || null,
+        aiResult.narrative || null,
+        JSON.stringify(aiResult.facts || []),
+        JSON.stringify(aiResult.concepts || []),
+        aiResult.type || null,
+        id,
+      ]
+    );
+    // 관계 추론 (fire-and-forget)
+    try {
+      const relations = loadRelations();
+      if (relations && relations.inferRelations) {
+        relations.inferRelations(db, id);
+      }
+    } catch {}
+  } catch (err) {
+    console.error('[fireauto-mem] updateMemoryWithAI error:', err.message);
+  }
 }
 
 // ── SSE ───────────────────────────────────────────────────────
@@ -118,6 +192,7 @@ async function startServer() {
       if (!session_id || !project || !type || !title || !content) {
         return res.status(400).json({ error: 'Missing required fields: session_id, project, type, title, content' });
       }
+      // 1. raw 데이터 즉시 DB 저장 (v1 호환)
       const id = await insertMemory(db, {
         session_id,
         project,
@@ -132,8 +207,112 @@ async function startServer() {
         data: { id, session_id, project, type, title, created_at_epoch: nowEpoch() },
       });
       res.json({ id });
+
+      // 2. 비동기로 SDK Agent에 구조화 요청 (fire-and-forget)
+      try {
+        const sdkAgent = loadSdkAgent();
+        if (sdkAgent) {
+          const result = await sdkAgent.processObservation({
+            tool_name: title?.split(':')[0] || 'unknown',
+            tool_input: content,
+            tool_output: '',
+            session_id,
+            project,
+          });
+          // AI가 구조화한 결과로 메모리 업데이트
+          if (result.observations?.length > 0) {
+            const obs = result.observations[0];
+            updateMemoryWithAI(db, id, obs);
+            // AI 필드 포함하여 SSE 업데이트 브로드캐스트
+            broadcast({
+              event: 'memory_enriched',
+              data: { id, subtitle: obs.subtitle, narrative: obs.narrative, type: obs.type },
+            });
+          }
+        }
+      } catch (err) {
+        console.error('[fireauto-mem] SDK 처리 실패 (무시):', err.message);
+      }
     } catch (err) {
       console.error('[fireauto-mem] POST /api/memories error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── GET /api/memories/:id/related ─────────────────────────
+  app.get('/api/memories/:id/related', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
+      const depth = parseInt(req.query.depth, 10) || 1;
+      const relations = loadRelations();
+      if (!relations || !relations.getRelationGraph) {
+        return res.json({ graph: [], message: 'relations module not available' });
+      }
+      const graph = relations.getRelationGraph(db, id, depth);
+      res.json({ graph });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/memories/:id/related error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── POST /api/compile ────────────────────────────────────
+  app.post('/api/compile', async (req, res) => {
+    try {
+      const { project, format } = req.body;
+      if (!project) {
+        return res.status(400).json({ error: 'Missing required field: project' });
+      }
+      const sdkAgent = loadSdkAgent();
+      if (!sdkAgent) {
+        return res.status(503).json({ error: 'SDK Agent not available' });
+      }
+      // 해당 프로젝트의 메모리 조회
+      const memories = listMemories(db, { project, limit: 200 });
+      if (!memories.length) {
+        return res.json({ markdown: `# ${project}\n\nNo memories found.` });
+      }
+      // 풀 메모리 데이터 조회
+      const fullMemories = await getMemoriesByIds(db, memories.map(m => m.id));
+      const result = await sdkAgent.generateSummary(fullMemories);
+      if (result.summary) {
+        const md = [
+          `# ${project} — Compiled Summary`,
+          '',
+          `## Request`,
+          result.summary.request || 'N/A',
+          '',
+          `## Completed`,
+          result.summary.completed || 'N/A',
+          '',
+          `## Learned`,
+          result.summary.learned || 'N/A',
+          '',
+          `## Next Steps`,
+          result.summary.next_steps || 'N/A',
+        ].join('\n');
+        return res.json({ markdown: md, format: format || 'markdown' });
+      }
+      res.json({ markdown: `# ${project}\n\nCompilation produced no results.` });
+    } catch (err) {
+      console.error('[fireauto-mem] POST /api/compile error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── GET /api/health-check ────────────────────────────────
+  app.get('/api/health-check', async (req, res) => {
+    try {
+      const { project } = req.query;
+      const healthCheck = loadHealthCheck();
+      if (!healthCheck || !healthCheck.runHealthCheck) {
+        return res.json({ issues: [], message: 'health-check module not available' });
+      }
+      const issues = healthCheck.runHealthCheck(db, project);
+      res.json({ issues });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/health-check error:', err.message);
       res.status(500).json({ error: err.message });
     }
   });
@@ -181,10 +360,31 @@ async function startServer() {
   // ── POST /api/sessions/summarize ──────────────────────────
   app.post('/api/sessions/summarize', async (req, res) => {
     try {
-      const { session_id, project, request, what_done, what_learned, next_steps } = req.body;
+      let { session_id, project, request, what_done, what_learned, next_steps } = req.body;
       if (!session_id || !project) {
         return res.status(400).json({ error: 'Missing required fields: session_id, project' });
       }
+
+      // SDK Agent로 AI 요약 생성 (v2)
+      try {
+        const sdkAgent = loadSdkAgent();
+        if (sdkAgent) {
+          const memories = listMemories(db, { project, limit: 100 });
+          if (memories.length > 0) {
+            const fullMemories = await getMemoriesByIds(db, memories.map(m => m.id));
+            const result = await sdkAgent.generateSummary(fullMemories);
+            if (result.summary) {
+              request = result.summary.request || request;
+              what_done = result.summary.completed || what_done;
+              what_learned = result.summary.learned || what_learned;
+              next_steps = result.summary.next_steps || next_steps;
+            }
+          }
+        }
+      } catch (err) {
+        console.error('[fireauto-mem] 요약 생성 실패:', err.message);
+      }
+
       // Complete the session
       await completeSession(db, session_id);
       // Insert summary
@@ -318,6 +518,11 @@ async function startServer() {
       try { client.end(); } catch { /* ignore */ }
     }
     sseClients.clear();
+    // SDK Agent cleanup
+    try {
+      const sdkAgent = loadSdkAgent();
+      if (sdkAgent && sdkAgent.shutdown) sdkAgent.shutdown();
+    } catch { /* ignore */ }
     // Final save
     try {
       saveDb(db, dbPath);

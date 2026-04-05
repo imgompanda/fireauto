@@ -224,6 +224,56 @@ async function main() {
     },
   );
 
+  // ── memory-related ────────────────────────────────────────
+  server.tool(
+    'memory-related',
+    '특정 메모리와 관련된 메모리를 조회합니다. 메모리 간 관계 그래프를 탐색해요.',
+    {
+      id: z.number().describe('메모리 ID'),
+      depth: z.number().optional().default(1).describe('탐색 깊이 (기본 1, 최대 3)'),
+    },
+    async ({ id, depth }) => {
+      return safeCall(async () => {
+        const result = await callWorker('GET', `/api/memories/${id}/related${qs({ depth: Math.min(depth, 3) })}`);
+
+        if (!result.memories || result.memories.length === 0) {
+          return { content: [{ type: 'text', text: `메모리 #${id}와 관련된 메모리가 없습니다.` }] };
+        }
+
+        const lines = result.memories.map((m) =>
+          `[${m.id}] ${m.title} (${m.type}) — 관련도: ${m.relevance || '-'}`,
+        );
+        const text = `메모리 #${id} 관련 ${result.memories.length}건 (깊이 ${depth}):\n\n` + lines.join('\n');
+        return { content: [{ type: 'text', text }] };
+      });
+    },
+  );
+
+  // ── memory-compile ───────────────────────────────────────
+  server.tool(
+    'memory-compile',
+    '프로젝트의 메모리를 종합하여 구조화된 지식 문서로 컴파일합니다.',
+    {
+      project: z.string().optional().describe('프로젝트명 (생략시 현재 프로젝트)'),
+      format: z.enum(['wiki', 'summary', 'lessons']).optional().default('wiki').describe('출력 형식'),
+    },
+    async ({ project, format }) => {
+      return safeCall(async () => {
+        const result = await callWorker('POST', '/api/compile', {
+          project: project || getProjectName(),
+          format,
+        });
+
+        if (result.error) {
+          return { content: [{ type: 'text', text: `컴파일 실패: ${result.error}` }], isError: true };
+        }
+
+        const text = result.document || result.content || JSON.stringify(result, null, 2);
+        return { content: [{ type: 'text', text }] };
+      });
+    },
+  );
+
   // ── Connect ───────────────────────────────────────────────
   const transport = new StdioServerTransport();
   await server.connect(transport);

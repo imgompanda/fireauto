@@ -85,7 +85,47 @@ CREATE TABLE IF NOT EXISTS summaries (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   created_at_epoch INTEGER NOT NULL
 );
+
+-- 관계 테이블 (v2)
+CREATE TABLE IF NOT EXISTS relations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source_id INTEGER NOT NULL,
+  target_id INTEGER NOT NULL,
+  relation_type TEXT NOT NULL CHECK(
+    relation_type IN ('related', 'caused_by', 'led_to', 'same_file', 'same_tag')
+  ),
+  confidence REAL DEFAULT 1.0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  created_at_epoch INTEGER NOT NULL,
+  FOREIGN KEY (source_id) REFERENCES memories(id),
+  FOREIGN KEY (target_id) REFERENCES memories(id),
+  UNIQUE(source_id, target_id, relation_type)
+);
 `;
+
+// ── v2 Migration ─────────────────────────────────────────
+
+/**
+ * v2 마이그레이션: memories에 컬럼 추가 + summaries에 investigated 추가
+ * 이미 존재하는 컬럼은 에러 무시
+ * @param {import('sql.js').Database} db
+ */
+function migrateV2(db) {
+  const newColumns = [
+    { table: 'memories', column: 'subtitle', type: 'TEXT' },
+    { table: 'memories', column: 'narrative', type: 'TEXT' },
+    { table: 'memories', column: 'facts', type: "TEXT DEFAULT '[]'" },
+    { table: 'memories', column: 'concepts', type: "TEXT DEFAULT '[]'" },
+    { table: 'summaries', column: 'investigated', type: 'TEXT' },
+  ];
+  for (const { table, column, type } of newColumns) {
+    try {
+      db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+    } catch (e) {
+      /* 이미 존재 — 무시 */
+    }
+  }
+}
 
 // ── Helper: rows to objects ───────────────────────────────
 
@@ -102,6 +142,19 @@ function rowsToObjects(results) {
     columns.forEach((col, i) => { obj[col] = row[i]; });
     return obj;
   });
+}
+
+/**
+ * 메모리 행의 JSON 필드를 파싱
+ * @param {Object} obj - raw memory row
+ * @returns {Object} parsed memory object
+ */
+function parseMemoryRow(obj) {
+  obj.tags = safeJsonParse(obj.tags, []);
+  obj.files_involved = safeJsonParse(obj.files_involved, []);
+  obj.facts = safeJsonParse(obj.facts, []);
+  obj.concepts = safeJsonParse(obj.concepts, []);
+  return obj;
 }
 
 // ── DB Initialization ─────────────────────────────────────
@@ -135,6 +188,9 @@ async function initDb(dbPath) {
     throw new Error(`Schema initialization failed: ${err.message}`);
   }
 
+  // v2 마이그레이션 (기존 DB 점진 업그레이드)
+  migrateV2(db);
+
   return db;
 }
 
@@ -153,7 +209,7 @@ async function initDb(dbPath) {
  * @param {string[]|string} [params.files_involved=[]]
  * @returns {number} 삽입된 레코드의 id
  */
-function insertMemory(db, { session_id, project, type, title, content, tags = [], files_involved = [] }) {
+function insertMemory(db, { session_id, project, type, title, content, tags = [], files_involved = [], subtitle, narrative, facts = [], concepts = [] }) {
   if (!MEMORY_TYPES.includes(type)) {
     throw new Error(`Invalid memory type: "${type}". Must be one of: ${MEMORY_TYPES.join(', ')}`);
   }
@@ -164,12 +220,14 @@ function insertMemory(db, { session_id, project, type, title, content, tags = []
   const epoch = nowEpoch();
   const tagsStr = typeof tags === 'string' ? tags : JSON.stringify(tags);
   const filesStr = typeof files_involved === 'string' ? files_involved : JSON.stringify(files_involved);
+  const factsStr = typeof facts === 'string' ? facts : JSON.stringify(facts);
+  const conceptsStr = typeof concepts === 'string' ? concepts : JSON.stringify(concepts);
 
   try {
     db.run(
-      `INSERT INTO memories (session_id, project, type, title, content, tags, files_involved, created_at, created_at_epoch)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [session_id, project, type, title, content, tagsStr, filesStr, formatEpoch(epoch), epoch]
+      `INSERT INTO memories (session_id, project, type, title, content, tags, files_involved, subtitle, narrative, facts, concepts, created_at, created_at_epoch)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [session_id, project, type, title, content, tagsStr, filesStr, subtitle || null, narrative || null, factsStr, conceptsStr, formatEpoch(epoch), epoch]
     );
 
     const result = db.exec('SELECT last_insert_rowid() as id');
@@ -279,10 +337,7 @@ function getMemoryById(db, id) {
     const rows = rowsToObjects(db.exec('SELECT * FROM memories WHERE id = ?', [id]));
     if (!rows.length) return null;
 
-    const obj = rows[0];
-    obj.tags = safeJsonParse(obj.tags, []);
-    obj.files_involved = safeJsonParse(obj.files_involved, []);
-    return obj;
+    return parseMemoryRow(rows[0]);
   } catch (err) {
     throw new Error(`Failed to get memory by id ${id}: ${err.message}`);
   }
@@ -301,11 +356,7 @@ function getMemoriesByIds(db, ids) {
     const placeholders = ids.map(() => '?').join(',');
     const rows = rowsToObjects(db.exec(`SELECT * FROM memories WHERE id IN (${placeholders})`, ids));
 
-    return rows.map((obj) => {
-      obj.tags = safeJsonParse(obj.tags, []);
-      obj.files_involved = safeJsonParse(obj.files_involved, []);
-      return obj;
-    });
+    return rows.map(parseMemoryRow);
   } catch (err) {
     throw new Error(`Failed to get memories by ids: ${err.message}`);
   }
@@ -333,9 +384,8 @@ function getTimeline(db, { days = 7, project } = {}) {
 
     const memRows = rowsToObjects(db.exec(memSql, memParams));
     const memories = memRows.map((obj) => {
-      obj.tags = safeJsonParse(obj.tags, []);
-      obj.files_involved = safeJsonParse(obj.files_involved, []);
-      return { source: 'memory', data: obj, epoch: obj.created_at_epoch };
+      const parsed = parseMemoryRow(obj);
+      return { source: 'memory', data: parsed, epoch: parsed.created_at_epoch };
     });
 
     // 요약 조회
@@ -480,6 +530,136 @@ function getSummaries(db, { project, limit = 20 } = {}) {
   }
 }
 
+// ── Relation CRUD ────────────────────────────────────────
+
+/**
+ * 관계 레코드 삽입 (중복 무시)
+ * @param {import('sql.js').Database} db
+ * @param {Object} params
+ * @param {number} params.source_id
+ * @param {number} params.target_id
+ * @param {string} params.relation_type - 'related'|'caused_by'|'led_to'|'same_file'|'same_tag'
+ * @param {number} [params.confidence=1.0]
+ * @returns {number|null} 삽입된 레코드의 id 또는 중복 시 null
+ */
+function insertRelation(db, { source_id, target_id, relation_type, confidence = 1.0 }) {
+  if (!source_id || !target_id || !relation_type) {
+    throw new Error('Required fields: source_id, target_id, relation_type');
+  }
+
+  const epoch = nowEpoch();
+  try {
+    db.run(
+      `INSERT OR IGNORE INTO relations (source_id, target_id, relation_type, confidence, created_at, created_at_epoch)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [source_id, target_id, relation_type, confidence, formatEpoch(epoch), epoch]
+    );
+    const modified = db.getRowsModified();
+    if (modified === 0) return null;
+    const result = db.exec('SELECT last_insert_rowid() as id');
+    return result[0].values[0][0];
+  } catch (err) {
+    throw new Error(`Failed to insert relation: ${err.message}`);
+  }
+}
+
+/**
+ * 특정 메모리의 모든 관계 조회
+ * @param {import('sql.js').Database} db
+ * @param {number} memoryId
+ * @returns {Object[]} relation records
+ */
+function getRelations(db, memoryId) {
+  try {
+    const rows = rowsToObjects(db.exec(
+      `SELECT * FROM relations WHERE source_id = ? OR target_id = ? ORDER BY created_at_epoch DESC`,
+      [memoryId, memoryId]
+    ));
+    return rows;
+  } catch (err) {
+    throw new Error(`Failed to get relations for memory ${memoryId}: ${err.message}`);
+  }
+}
+
+/**
+ * depth 단계까지 관련 메모리 + 관계 정보 반환
+ * @param {import('sql.js').Database} db
+ * @param {number} memoryId
+ * @param {number} [depth=1] - 1: 직접 연결만, 2: 1촌 + 2촌
+ * @returns {{ memories: Object[], relations: Object[] }}
+ */
+function getRelatedMemories(db, memoryId, depth = 1) {
+  try {
+    const visitedIds = new Set([memoryId]);
+    const allRelations = [];
+    let currentIds = [memoryId];
+
+    for (let d = 0; d < depth; d++) {
+      if (!currentIds.length) break;
+
+      const placeholders = currentIds.map(() => '?').join(',');
+      const relations = rowsToObjects(db.exec(
+        `SELECT * FROM relations WHERE source_id IN (${placeholders}) OR target_id IN (${placeholders})`,
+        [...currentIds, ...currentIds]
+      ));
+
+      const nextIds = [];
+      for (const rel of relations) {
+        allRelations.push(rel);
+        for (const id of [rel.source_id, rel.target_id]) {
+          if (!visitedIds.has(id)) {
+            visitedIds.add(id);
+            nextIds.push(id);
+          }
+        }
+      }
+      currentIds = nextIds;
+    }
+
+    // 자기 자신 제외
+    visitedIds.delete(memoryId);
+    const memoryIds = [...visitedIds];
+    const memories = memoryIds.length ? getMemoriesByIds(db, memoryIds) : [];
+
+    // 중복 관계 제거
+    const uniqueRelations = [];
+    const relKeys = new Set();
+    for (const rel of allRelations) {
+      const key = `${rel.source_id}-${rel.target_id}-${rel.relation_type}`;
+      if (!relKeys.has(key)) {
+        relKeys.add(key);
+        uniqueRelations.push(rel);
+      }
+    }
+
+    return { memories, relations: uniqueRelations };
+  } catch (err) {
+    throw new Error(`Failed to get related memories for ${memoryId}: ${err.message}`);
+  }
+}
+
+/**
+ * 프로젝트의 모든 메모리를 컴파일용으로 반환 (전체 필드)
+ * @param {import('sql.js').Database} db
+ * @param {string} project
+ * @returns {Object[]} full memory objects
+ */
+function getMemoriesForCompile(db, project) {
+  if (!project) {
+    throw new Error('Required field: project');
+  }
+
+  try {
+    const rows = rowsToObjects(db.exec(
+      'SELECT * FROM memories WHERE project = ? ORDER BY created_at_epoch ASC',
+      [project]
+    ));
+    return rows.map(parseMemoryRow);
+  } catch (err) {
+    throw new Error(`Failed to get memories for compile: ${err.message}`);
+  }
+}
+
 // ── Stats ─────────────────────────────────────────────────
 
 /**
@@ -569,4 +749,9 @@ module.exports = {
   getSummaries,
   getStats,
   saveDb,
+  // v2
+  insertRelation,
+  getRelations,
+  getRelatedMemories,
+  getMemoriesForCompile,
 };

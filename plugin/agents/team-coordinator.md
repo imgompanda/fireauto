@@ -62,19 +62,43 @@ Agent 호출:
 - 타입 정의가 다른 팀원의 코드와 호환되는가
 - 테스트가 충분한가
 
-## 결과 통합
+## 결과 통합 (Worktree 병합)
+
+**중요: Worktree는 자동 병합되지 않습니다!** CEO가 수동으로 병합해야 합니다.
 
 모든 태스크 완료 시:
 
-1. worktree 병합 (순서: 타입 -> 핵심로직 -> UI -> 테스트)
-2. 충돌 해결
-3. 빌드/테스트 검증
-4. `TeamDelete`로 팀 정리
-5. 최종 리포트 작성
+### 1. 워크트리 브랜치 확인
+```bash
+git worktree list
+git branch | grep worktree
+```
+
+### 2. 순차 병합 (순서: 타입 -> 핵심로직 -> UI -> 테스트)
+```bash
+git merge worktree-{팀원이름} --no-edit
+```
+충돌 시: `git add {파일} && git merge --continue`
+
+### 3. 워크트리 없이 main에 직접 수정된 경우
+에이전트가 worktree 생성에 실패하면 main에 직접 수정합니다.
+`git status`로 확인하고 바로 스테이징 + 커밋하면 됩니다.
+
+### 4. 워크트리 정리
+```bash
+git worktree remove .claude/worktrees/{name} 2>/dev/null
+git branch -d worktree-{name} 2>/dev/null
+```
+
+### 5. 검증 및 마무리
+- 문법 검증: `node -c {파일}` 등
+- 빌드/테스트 실행
+- `TeamDelete`로 팀 정리
+- 최종 리포트 작성
 
 ## 안전 규칙
 
 - force push 금지
-- main/master 직접 커밋 금지 (병합만)
 - .env, 인증 정보 커밋 금지
 - worktree 정리 전 병합 여부 반드시 확인
+- 병합 실패 시 `git merge --abort`로 안전하게 취소
