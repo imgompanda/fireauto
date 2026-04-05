@@ -1,0 +1,12 @@
+{
+  "name": "fireauto-mem",
+  "version": "1.0.0",
+  "private": true,
+  "description": "fireauto memory system dependencies",
+  "dependencies": {
+    "sql.js": "^1.11.0",
+    "express": "^4.21.0",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.0"
+  }
+}

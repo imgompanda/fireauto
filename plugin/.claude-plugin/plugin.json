@@ -1,7 +1,7 @@
 {
   "name": "fireauto",
   "version": "1.1.1",
-  "description": "AI 서비스 40개를 만들면서 실전에서 검증된 자동화 플러그인 모음. 레딧 수요조사, 팀 에이전트, SEO 점검, 보안 감사, DaisyUI 디자인.",
+  "description": "AI 서비스 40개를 만들면서 실전에서 검증된 자동화 플러그인 모음. 레딧 수요조사, 팀 에이전트, SEO 점검, 보안 감사, DaisyUI 디자인, 메모리 기반 지식 관리.",
   "author": {
     "name": "FreAiner"
   },
