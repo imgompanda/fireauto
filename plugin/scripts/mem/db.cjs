@@ -189,6 +189,26 @@ function insertMemory(db, { session_id, project, type, title, content, tags = []
  * @param {number} [params.limit=20] - 결과 제한
  * @returns {Array<{id: number, title: string, type: string, project: string, created_at_epoch: number}>}
  */
+/**
+ * 메모리 목록 조회 (검색 없이)
+ * @param {import('sql.js').Database} db
+ * @param {{ type?: string, project?: string, limit?: number }} options
+ * @returns {Array<Object>}
+ */
+function listMemories(db, { type, project, limit = 20 } = {}) {
+  try {
+    let sql = 'SELECT id, title, type, project, created_at_epoch FROM memories WHERE 1=1';
+    const params = [];
+    if (type) { sql += ' AND type = ?'; params.push(type); }
+    if (project) { sql += ' AND project = ?'; params.push(project); }
+    sql += ' ORDER BY created_at_epoch DESC LIMIT ?';
+    params.push(limit);
+    return rowsToObjects(db.exec(sql, params));
+  } catch (err) {
+    throw new Error(`Failed to list memories: ${err.message}`);
+  }
+}
+
 function searchMemories(db, { query, type, project, limit = 20 }) {
   if (!query || !query.trim()) {
     return [];
@@ -483,6 +503,35 @@ function getStats(db) {
   }
 }
 
+/**
+ * 세션 목록 조회
+ * @param {import('sql.js').Database} db
+ * @param {{ project?: string, limit?: number }} options
+ * @returns {Array<Object>}
+ */
+function getSessions(db, { project, limit = 50 } = {}) {
+  try {
+    let sql = 'SELECT * FROM sessions';
+    const params = [];
+    if (project) {
+      sql += ' WHERE project = ?';
+      params.push(project);
+    }
+    sql += ' ORDER BY started_at_epoch DESC LIMIT ?';
+    params.push(limit);
+    const stmt = db.prepare(sql);
+    stmt.bind(params);
+    const results = [];
+    while (stmt.step()) {
+      results.push(stmt.getAsObject());
+    }
+    stmt.free();
+    return results;
+  } catch (err) {
+    throw new Error(`Failed to get sessions: ${err.message}`);
+  }
+}
+
 // ── DB Persistence ────────────────────────────────────────
 
 /**
@@ -508,6 +557,7 @@ function saveDb(db, dbPath) {
 module.exports = {
   initDb,
   insertMemory,
+  listMemories,
   searchMemories,
   getMemoryById,
   getMemoriesByIds,
@@ -515,6 +565,7 @@ module.exports = {
   initSession,
   completeSession,
   insertSummary,
+  getSessions,
   getSummaries,
   getStats,
   saveDb,

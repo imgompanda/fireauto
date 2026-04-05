@@ -43,16 +43,15 @@ async function startServer() {
     initDb,
     saveDb,
     insertMemory,
-    getMemory,
+    getMemoryById,
     searchMemories,
     listMemories,
-    batchGetMemories,
-    listSessions,
+    getMemoriesByIds,
     initSession,
-    getSession,
     completeSession,
     insertSummary,
-    listSummaries,
+    getSessions,
+    getSummaries,
     getTimeline,
     getStats,
   } = loadDbModule();
@@ -87,9 +86,9 @@ async function startServer() {
       const lim = parseInt(limit, 10) || 50;
       let memories;
       if (q) {
-        memories = await searchMemories(db, q, { type, project, limit: lim });
+        memories = searchMemories(db, { query: q, type, project, limit: lim });
       } else {
-        memories = await listMemories(db, { type, project, limit: lim });
+        memories = listMemories(db, { type, project, limit: lim });
       }
       res.json({ memories });
     } catch (err) {
@@ -103,7 +102,7 @@ async function startServer() {
     try {
       const id = parseInt(req.params.id, 10);
       if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
-      const memory = await getMemory(db, id);
+      const memory = await getMemoryById(db, id);
       if (!memory) return res.status(404).json({ error: 'Not found' });
       res.json({ memory });
     } catch (err) {
@@ -144,7 +143,7 @@ async function startServer() {
     try {
       const { ids } = req.body;
       if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids must be an array' });
-      const memories = await batchGetMemories(db, ids);
+      const memories = await getMemoriesByIds(db, ids);
       res.json({ memories });
     } catch (err) {
       console.error('[fireauto-mem] POST /api/memories/batch error:', err.message);
@@ -156,7 +155,7 @@ async function startServer() {
   app.get('/api/sessions', async (req, res) => {
     try {
       const { project, limit } = req.query;
-      const sessions = await listSessions(db, { project, limit: parseInt(limit, 10) || 50 });
+      const sessions = await getSessions(db, { project, limit: parseInt(limit, 10) || 50 });
       res.json({ sessions });
     } catch (err) {
       console.error('[fireauto-mem] GET /api/sessions error:', err.message);
@@ -212,7 +211,7 @@ async function startServer() {
   app.get('/api/summaries', async (req, res) => {
     try {
       const { project, limit } = req.query;
-      const summaries = await listSummaries(db, { project, limit: parseInt(limit, 10) || 50 });
+      const summaries = await getSummaries(db, { project, limit: parseInt(limit, 10) || 50 });
       res.json({ summaries });
     } catch (err) {
       console.error('[fireauto-mem] GET /api/summaries error:', err.message);
@@ -260,7 +259,7 @@ async function startServer() {
     // Send initial load event
     try {
       const stats = await getStats(db);
-      const sessions = await listSessions(db, { limit: 10 });
+      const sessions = await getSessions(db, { limit: 10 });
       const projects = [...new Set(sessions.map((s) => s.project).filter(Boolean))];
       res.write(`data: ${JSON.stringify({ event: 'initial_load', data: { projects, stats } })}\n\n`);
     } catch (err) {
