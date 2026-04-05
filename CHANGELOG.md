@@ -1,5 +1,34 @@
 # Changelog
 
+## v2.0.0 (2026-04-05)
+
+### 새로운 기능
+
+- **Agent SDK + Haiku AI 요약** — 관찰 데이터를 Haiku 모델이 자동 구조화, 세션 종료 시 AI 요약 생성
+- **관계형 메모리** — 메모리 간 자동 링크 (same_file, same_tag, led_to), relations 테이블, BFS 그래프 탐색
+- **MCP 도구 2개 추가** — `memory-related` (관계 그래프 탐색), `memory-compile` (지식 컴파일)
+- **자동 트리거 스킬 3개** — 검색/저장/컴파일이 상황에 맞게 자동 활성화
+  - `fireauto-mem-search-guide`: "이전에 한 작업 찾아줘" → 자동 검색
+  - `fireauto-mem-save-guide`: "이거 기억해둬" → 자동 저장
+  - `fireauto-mem-compile-guide`: "프로젝트 정리해줘" → 자동 컴파일
+- **Health Check** — 고아 메모리, 중복, 불일치 등 7가지 자동 점검
+- **UI v2** — 세션별 그룹핑, AI 요약 카드, Canvas 관계 그래프 뷰 (48KB)
+- **Karpathy 워크플로우** — raw 데이터 → AI 컴파일 → 구조화된 지식 문서
+
+### 개선
+
+- **team 커맨드** — worktree 병합 가이드 추가 (자동 병합되지 않음 경고)
+- **team-coordinator 에이전트** — 수동 병합 절차 + fallback 처리 가이드
+- **DB v2 마이그레이션** — memories에 subtitle/narrative/facts/concepts 컬럼 추가, 기존 DB 하위 호환
+
+### 신규 파일
+
+- `sdk-agent.cjs` — Agent SDK query() 래퍼
+- `prompts.cjs` — 관찰/요약/컴파일 프롬프트 빌더
+- `parser.cjs` — XML 응답 파서
+- `relations.cjs` — 자동 관계 추론
+- `health-check.cjs` — 메모리 건강 점검
+
 ## v1.2.0 (2026-04-05)
 
 ### 새로운 기능
