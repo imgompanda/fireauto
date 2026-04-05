@@ -1,6 +1,6 @@
 ---
 name: memory-install
-description: fireauto 메모리 시스템을 설치해요. 작업 기록이 자동으로 저장되고, 다음 세션에서 검색할 수 있어요.
+description: 당신만의 개발 지식 데이터베이스를 자동으로 구축해요. 설치만 하면 AI가 매 작업을 능동적으로 분석하고, 패턴·결정·실수를 체계화해요.
 allowed-tools: Bash, Read, Write, Edit, AskUserQuestion
 user-invocable: true
 ---
