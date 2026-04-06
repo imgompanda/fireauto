@@ -784,6 +784,21 @@ var ov=el('div','project-overview');
 var ovMain=el('div','project-overview-main');
 ovMain.appendChild(el('h2','project-name',p.name||'프로젝트'));
 if(p.description) ovMain.appendChild(el('p','project-desc',p.description));
+// PRD 요약: 마일스톤 로드맵
+if(ms.length>0){
+  var roadmap=el('div','project-roadmap');
+  roadmap.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px';
+  ms.forEach(function(m,i){
+    var chip=el('span','');
+    var icon=m.status==='completed'?'✅':m.status==='in_progress'?'🔄':'⬜';
+    chip.textContent=icon+' M'+(i+1)+': '+m.title;
+    chip.style.cssText='font-size:12px;padding:4px 10px;border-radius:6px;background:var(--bg-secondary);color:var(--text-secondary)';
+    if(m.status==='in_progress'){chip.style.background='var(--accent-dim)';chip.style.color='var(--accent)';chip.style.fontWeight='600';}
+    if(m.status==='completed'){chip.style.opacity='0.6';}
+    roadmap.appendChild(chip);
+  });
+  ovMain.appendChild(roadmap);
+}
 var mt=el('div','project-meta');
 mt.appendChild(el('span','project-status',p.status==='active'?'진행 중':p.status==='completed'?'완료':(p.status||'')));
 var totalM=ms.length;
@@ -792,6 +807,7 @@ mt.appendChild(el('span','','마일스톤 '+doneM+'/'+totalM));
 var rawProgress=typeof rawPct==='object'&&rawPct?rawPct:null;
 if(rawProgress) mt.appendChild(el('span','','태스크 '+(rawProgress.completed_tasks||0)+'/'+(rawProgress.total_tasks||0)));
 if(p.created_at) mt.appendChild(el('span','',formatDate(p.created_at_epoch||new Date(p.created_at).getTime())));
+if(p.prd_path) mt.appendChild(el('span','','📄 PRD: '+p.prd_path));
 ovMain.appendChild(mt);
 ov.appendChild(ovMain);
 // 진행률 원형 표시
