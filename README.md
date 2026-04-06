@@ -147,6 +147,10 @@ PRD를 작성하면 AI가 자동으로:
 
 대시보드: `http://localhost:37888` (프로젝트 탭)
 
+<p align="center">
+  <img src="image/프로젝트.png" alt="프로젝트 대시보드 — 마일스톤 진행률과 칸반 보드" width="700" />
+</p>
+
 ### 지식 축적 -- 코딩하면 자동으로 쌓여요
 
 코드를 수정할 때마다 AI(Haiku)가 자동으로:
@@ -166,9 +170,17 @@ PRD를 작성하면 AI가 자동으로:
 | `retrospective.md` | 세션별 복기 |
 | `index.md` | 자동 생성 목록 |
 
+<p align="center">
+  <img src="image/wiki.png" alt="Wiki — 설계 결정, 패턴, 주의사항 페이지" width="700" />
+</p>
+
 **사용자가 할 일: 없음.** 코딩만 하면 지식이 알아서 쌓여요.
 
 대시보드: `http://localhost:37888` (타임라인 탭)
+
+<p align="center">
+  <img src="image/타임라인.png" alt="타임라인 — AI가 자동 요약한 세션별 지식 카드" width="700" />
+</p>
 
 ### 자기 학습 -- AI가 실수에서 배워요
 
@@ -184,6 +196,10 @@ PRD를 작성하면 AI가 자동으로:
 3. `skills-catalog.md`에 등록
 
 CLAUDE.md는 **80줄 이내**로 자동 관리돼요. (Anthropic 권장: 200줄 이하, 최적: 60-80줄) 초과하면 자동으로 Wiki로 이동해요. "이 줄을 제거하면 Claude가 실수할까?" -- 아니면 삭제.
+
+<p align="center">
+  <img src="image/스킬.png" alt="스킬 & 실수 기록 — 자동 생성된 스킬과 심각도별 실수 추적" width="700" />
+</p>
 
 ### 복기 -- 세션 끝나면 자동으로 정리
 
