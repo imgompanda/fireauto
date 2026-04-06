@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 // ── DB / Wiki 모듈 (lazy load) ──────────────────────────────
 let dbMod;
@@ -162,6 +163,7 @@ const CLAUDE_MD_MAX_LINES = 80;
 
 /**
  * CLAUDE.md에 규칙 추가 (80줄 이내 유지)
+ * 글로벌(~/.claude/CLAUDE.md)과 프로젝트(.claude/CLAUDE.md) 둘 다 관리
  * 초과 시 오래된 규칙을 wiki로 이동
  * @param {string} projectRoot - 프로젝트 루트 경로
  * @param {string} rule - 추가할 규칙
@@ -172,7 +174,9 @@ function addClaudeMdRule(projectRoot, rule) {
     return { added: false, movedToWiki: [] };
   }
 
-  const claudeMdPath = path.join(projectRoot, '.claude', 'CLAUDE.md');
+  // 글로벌 CLAUDE.md에 추가 (모든 프로젝트에서 적용)
+  const globalPath = path.join(os.homedir(), '.claude', 'CLAUDE.md');
+  const claudeMdPath = fs.existsSync(globalPath) ? globalPath : path.join(projectRoot, '.claude', 'CLAUDE.md');
   const movedToWiki = [];
 
   // .claude 디렉토리 확인/생성
