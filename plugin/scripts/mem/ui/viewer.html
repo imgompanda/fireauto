@@ -85,7 +85,9 @@ a:hover{text-decoration:underline}
 .empty-project .ep-icon{font-size:2.5rem;margin-bottom:12px}
 .empty-project .ep-title{font-size:1.125rem;font-weight:600;color:var(--text-primary);margin-bottom:4px}
 .empty-project .ep-desc{font-size:.875rem}
-.project-dashboard{max-width:800px;margin:0 auto}
+.project-dashboard{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:240px 1fr;gap:16px;grid-template-rows:auto auto 1fr}
+.project-header{grid-column:1/-1}
+.progress-section{grid-column:1/-1}
 .project-header{margin-bottom:16px}
 .project-name{font-size:1.25rem;font-weight:700;margin-bottom:4px}
 .project-meta{display:flex;gap:10px;font-size:.8125rem;color:var(--text-secondary)}
@@ -94,7 +96,7 @@ a:hover{text-decoration:underline}
 .progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
 .progress-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
 .progress-text{font-size:13px;color:var(--text-secondary);margin-top:4px;display:block}
-.milestone-list{display:flex;flex-direction:column;gap:0}
+.milestone-list{display:flex;flex-direction:column;gap:0;grid-column:1;grid-row:3}
 .milestone-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:4px solid var(--border);box-shadow:var(--shadow);cursor:pointer;transition:all .2s}
 .milestone-card:hover{box-shadow:var(--shadow-md)}
 .milestone-card.completed{border-left-color:var(--success);opacity:.7}
@@ -120,7 +122,7 @@ a:hover{text-decoration:underline}
 .task-priority.p2{background:rgba(59,130,246,.15);color:#3b82f6}
 .task-priority.p3{background:rgba(107,114,128,.15);color:#6b7280}
 .task-memory{width:100%;font-size:12px;color:var(--text-tertiary);padding:4px 0 0 28px}
-.kanban{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+.kanban{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;grid-column:2;grid-row:3}
 .kanban-col{background:var(--bg-secondary);border-radius:8px;padding:12px;min-height:200px}
 .kanban-col-title{font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
 .kanban-col-count{font-size:11px;font-weight:400;color:var(--text-tertiary);background:var(--bg-card);padding:1px 6px;border-radius:3px}
@@ -152,7 +154,9 @@ a:hover{text-decoration:underline}
 .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:8px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:768px){
-  .kanban{grid-template-columns:1fr}
+  .project-dashboard{grid-template-columns:1fr}
+  .milestone-list{grid-column:1;grid-row:auto}
+  .kanban{grid-column:1;grid-row:auto;grid-template-columns:1fr}
 }
 @media(max-width:600px){
   .header{padding:10px 12px;gap:8px}
