@@ -59,8 +59,9 @@ function suggestOnTaskCompleted(db, dbMod, action, taskId, projectId) {
     const completedTask = safeCall(() => dbMod.getTask(db, taskId));
     if (completedTask && completedTask.milestone_id) {
       const tasks = safeCall(() =>
-        dbMod.listTasks(db, { milestoneId: completedTask.milestone_id }),
+        dbMod.listTasks(db, { milestone_id: completedTask.milestone_id }),
       ) || [];
+
       nextTask = tasks.find(t => t.status === 'pending');
     }
   }
@@ -68,7 +69,7 @@ function suggestOnTaskCompleted(db, dbMod, action, taskId, projectId) {
   // 마일스톤 내 다음 태스크가 없으면 프로젝트 전체에서 찾기
   if (!nextTask && projectId) {
     const tasks = safeCall(() =>
-      dbMod.listTasks(db, { projectId }),
+      dbMod.listTasks(db, { project_id: projectId }),
     ) || [];
     nextTask = tasks.find(t => t.status === 'pending');
   }
@@ -91,7 +92,7 @@ function suggestOnMilestoneCompleted(db, dbMod, action, projectId) {
   if (!projectId) return null;
 
   const milestones = safeCall(() =>
-    dbMod.listMilestones(db, { projectId }),
+    dbMod.listMilestones(db, projectId),
   ) || [];
 
   const completedCount = milestones.filter(m => m.status === 'completed').length;
@@ -146,7 +147,7 @@ function suggestOnDeploy(db, dbMod, action, projectId) {
   let pendingCount = 0;
   if (projectId) {
     const tasks = safeCall(() =>
-      dbMod.listTasks(db, { projectId }),
+      dbMod.listTasks(db, { project_id: projectId }),
     ) || [];
     pendingCount = tasks.filter(t => t.status !== 'completed').length;
   }

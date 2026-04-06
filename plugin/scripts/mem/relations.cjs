@@ -34,6 +34,23 @@ function rowsToObjects(results) {
   });
 }
 
+/**
+ * sql.js prepare/bind 패턴으로 바인딩된 쿼리 실행
+ * db.exec()는 두 번째 인자(params)를 무시하므로 prepare/bind 사용
+ * @param {import('sql.js').Database} db
+ * @param {string} sql
+ * @param {Array} params
+ * @returns {Object[]}
+ */
+function queryWithParams(db, sql, params) {
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  const results = [];
+  while (stmt.step()) results.push(stmt.getAsObject());
+  stmt.free();
+  return results;
+}
+
 // ── Relations table bootstrap ────────────────────────────
 
 const RELATIONS_SCHEMA = `
@@ -73,7 +90,7 @@ function getMemoryByIdSafe(db, id) {
     const { getMemoryById } = require('./db.cjs');
     return getMemoryById(db, id);
   } catch {
-    const rows = rowsToObjects(db.exec('SELECT * FROM memories WHERE id = ?', [id]));
+    const rows = queryWithParams(db, 'SELECT * FROM memories WHERE id = ?', [id]);
     if (!rows.length) return null;
     const obj = rows[0];
     obj.tags = safeJsonParse(obj.tags, []);
@@ -126,10 +143,10 @@ function getRelationsSafe(db, memoryId) {
   } catch {
     try {
       ensureRelationsTable(db);
-      return rowsToObjects(db.exec(
+      return queryWithParams(db,
         `SELECT * FROM relations WHERE source_id = ? OR target_id = ?`,
         [memoryId, memoryId]
-      ));
+      );
     } catch {
       return [];
     }
@@ -165,10 +182,10 @@ function inferRelations(db, newMemoryId) {
   for (const file of newFiles) {
     if (!file) continue;
     try {
-      const matches = rowsToObjects(db.exec(
+      const matches = queryWithParams(db,
         `SELECT id FROM memories WHERE id != ? AND files_involved LIKE ?`,
-        [newMemoryId, `%${file}%`]
-      ));
+        [newMemoryId, '%' + file + '%']
+      );
       for (const match of matches) {
         const key = `${newMemoryId}-${match.id}-same_file`;
         if (seen.has(key)) continue;
@@ -193,10 +210,10 @@ function inferRelations(db, newMemoryId) {
   for (const tag of newTags) {
     if (!tag) continue;
     try {
-      const matches = rowsToObjects(db.exec(
+      const matches = queryWithParams(db,
         `SELECT id FROM memories WHERE id != ? AND tags LIKE ?`,
-        [newMemoryId, `%${tag}%`]
-      ));
+        [newMemoryId, '%' + tag + '%']
+      );
       for (const match of matches) {
         const key = `${newMemoryId}-${match.id}-same_tag`;
         if (seen.has(key)) continue;
@@ -225,10 +242,10 @@ function inferRelations(db, newMemoryId) {
       .filter(w => !/^(the|and|for|with|from|that|this|was|are|were|has|have|had|not|but|can|will|its|you|all|한|을|를|이|가|의|에|로|은|는|도|다)$/i.test(w));
 
     for (const word of titleWords.slice(0, 5)) { // 최대 5개 키워드
-      const matches = rowsToObjects(db.exec(
+      const matches = queryWithParams(db,
         `SELECT id FROM memories WHERE id != ? AND (title LIKE ? OR content LIKE ?) LIMIT 5`,
-        [newMemoryId, `%${word}%`, `%${word}%`]
-      ));
+        [newMemoryId, '%' + word + '%', '%' + word + '%']
+      );
       for (const match of matches) {
         const key = `${newMemoryId}-${match.id}-related`;
         if (seen.has(key)) continue;
@@ -252,13 +269,13 @@ function inferRelations(db, newMemoryId) {
   if (newMem.session_id && newMem.created_at_epoch) {
     try {
       const fiveMinMs = 300000;
-      const matches = rowsToObjects(db.exec(
+      const matches = queryWithParams(db,
         `SELECT id FROM memories
          WHERE id != ? AND session_id = ?
            AND created_at_epoch < ?
-           AND created_at_epoch > ? - ?`,
-        [newMemoryId, newMem.session_id, newMem.created_at_epoch, newMem.created_at_epoch, fiveMinMs]
-      ));
+           AND created_at_epoch > ?`,
+        [newMemoryId, newMem.session_id, newMem.created_at_epoch, newMem.created_at_epoch - fiveMinMs]
+      );
       for (const match of matches) {
         const key = `${match.id}-${newMemoryId}-led_to`;
         if (seen.has(key)) continue;

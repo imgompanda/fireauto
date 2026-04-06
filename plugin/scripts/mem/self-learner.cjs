@@ -220,7 +220,6 @@ function addClaudeMdRule(projectRoot, rule) {
         movedToWiki.push(removedLine);
       } catch { /* wiki write fail — 규칙은 여전히 제거됨 */ }
     }
-    movedToWiki.push(removedLine);
   }
 
   // 새 규칙 추가

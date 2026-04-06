@@ -93,14 +93,14 @@ process.stdin.on('end',()=>{
 if [ -f "$PROJECT_CLAUDE_MD" ]; then
   # 기존 자동 생성 섹션 제거 (## 현재 프로젝트 상태 ~ 다음 ## 또는 EOF)
   TEMP=$(mktemp)
-  node -e "
+  PROJECT_CLAUDE_MD="$PROJECT_CLAUDE_MD" TEMP_FILE="$TEMP" node -e "
     const fs=require('fs');
-    let content=fs.readFileSync('$PROJECT_CLAUDE_MD','utf8');
+    let content=fs.readFileSync(process.env.PROJECT_CLAUDE_MD,'utf8');
     // 자동 생성 섹션 제거: ## 현재 프로젝트 상태 부터 다음 ##(레벨1-2) 전까지
     content=content.replace(/\n*## 현재 프로젝트 상태 \(자동 생성[^]*?(?=\n## [^현]|\n# [^\n]|$)/g, '');
     // 후행 빈줄 정리
     content=content.replace(/\n{3,}/g, '\n\n').trim();
-    fs.writeFileSync('$TEMP', content+'\n');
+    fs.writeFileSync(process.env.TEMP_FILE, content+'\n');
   " 2>/dev/null
   echo "" >> "$TEMP"
   echo "$CONTEXT" >> "$TEMP"

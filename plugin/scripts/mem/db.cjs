@@ -255,6 +255,9 @@ async function initDb(dbPath) {
     db = new SQL.Database();
   }
 
+  // 외래키 활성화
+  db.run('PRAGMA foreign_keys = ON');
+
   // 스키마 생성
   try {
     db.run(SCHEMA_SQL);
@@ -329,7 +332,7 @@ function insertMemory(db, { session_id, project, type, title, content, tags = []
  */
 function listMemories(db, { type, project, limit = 20 } = {}) {
   try {
-    let sql = 'SELECT id, title, type, project, created_at_epoch FROM memories WHERE 1=1';
+    let sql = 'SELECT id, title, type, project, session_id, created_at_epoch FROM memories WHERE 1=1';
     const params = [];
     if (type) { sql += ' AND type = ?'; params.push(type); }
     if (project) { sql += ' AND project = ?'; params.push(project); }

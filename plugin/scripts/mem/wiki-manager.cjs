@@ -16,6 +16,16 @@ const os = require('os');
 const GLOBAL_WIKI_DIR = path.join(process.env.MEM_DIR || path.join(os.homedir(), '.fireauto-mem'), 'wiki');
 
 /**
+ * pageName 검증 — 경로 탐색 방지
+ * @param {string} name
+ * @returns {string} 검증된 이름
+ */
+function sanitizePage(name) {
+  if (!name || !/^[a-zA-Z0-9_\-]+$/.test(name)) throw new Error('Invalid page name: ' + name);
+  return name;
+}
+
+/**
  * Wiki 루트 경로 반환 (글로벌)
  * @returns {string} wiki 디렉토리 경로
  */
@@ -30,6 +40,7 @@ function getWikiDir() {
  * @returns {string|null} 페이지 내용 또는 null
  */
 function readPage(pageName) {
+  pageName = sanitizePage(pageName);
   const filePath = path.join(getWikiDir(), pageName + '.md');
   if (!fs.existsSync(filePath)) return null;
   return fs.readFileSync(filePath, 'utf8');
@@ -42,6 +53,7 @@ function readPage(pageName) {
  * @param {string} content - 페이지 내용
  */
 function writePage(pageName, content) {
+  pageName = sanitizePage(pageName);
   const dir = getWikiDir();
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, pageName + '.md'), content, 'utf8');

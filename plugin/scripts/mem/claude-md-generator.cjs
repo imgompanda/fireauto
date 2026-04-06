@@ -171,7 +171,6 @@ function trimClaudeMd(projectRoot, maxLines) {
     const existing = wikiMgr.readPage('overflow') ||
       '# CLAUDE.md 오버플로우\n\n80줄 초과 규칙이 여기로 이동돼요.\n';
     wikiMgr.writePage(
-      projectRoot,
       'overflow',
       existing + '\n---\n' + overflow.join('\n')
     );

@@ -33,8 +33,9 @@ fi
 SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
 PROJECT=$(basename "$(pwd)")
 
+PAYLOAD=$(node -e "console.log(JSON.stringify({session_id:process.argv[1],project:process.argv[2]}))" "$SESSION_ID" "$PROJECT")
 curl -sf -X POST "$WORKER_URL/api/sessions/init" \
   -H "Content-Type: application/json" \
-  -d "{\"session_id\":\"$SESSION_ID\",\"project\":\"$PROJECT\"}" > /dev/null 2>&1
+  -d "$PAYLOAD" > /dev/null 2>&1
 
 echo "[fireauto-mem] 세션 초기화 완료: $PROJECT" >&2

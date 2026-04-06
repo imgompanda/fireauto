@@ -156,17 +156,17 @@ function executeActions(db, actions, project) {
             console.error('[fireauto-auto] 실수 자동 기록: ' + (parts[0] || '').slice(0, 50));
           }
           // gotchas.md 자동 업데이트
-          var wm = loadWikiManager();
+          const wm = loadWikiManager();
           if (wm) {
-            var existing = wm.readPage('gotchas') || '# 주의사항\n';
+            const existing = wm.readPage('gotchas') || '# 주의사항\n';
             wm.writePage('gotchas', existing + '\n## ' + (parts[0] || '').slice(0, 50) + '\n- ' + action.content + '\n');
           }
           break;
         }
         case 'skill': {
           // "스킬 이름 | 설명 | 카테고리"
-          var parts = action.content.split('|').map(function(s) { return s.trim(); });
-          var dbMod = loadDbModule();
+          const parts = action.content.split('|').map(function(s) { return s.trim(); });
+          const dbMod = loadDbModule();
           if (dbMod.saveSkill) {
             dbMod.saveSkill(db, {
               name: parts[0] || 'auto-skill',
@@ -180,16 +180,16 @@ function executeActions(db, actions, project) {
           break;
         }
         case 'wiki': {
-          var wm = loadWikiManager();
+          const wm = loadWikiManager();
           if (wm && action.page) {
-            var existing = wm.readPage(action.page) || '# ' + action.page + '\n';
+            const existing = wm.readPage(action.page) || '# ' + action.page + '\n';
             wm.writePage(action.page, existing + '\n' + action.content + '\n');
             console.error('[fireauto-auto] Wiki ' + action.page + ' 업데이트');
           }
           break;
         }
         case 'rule': {
-          var sl = loadSelfLearner();
+          const sl = loadSelfLearner();
           if (sl && sl.addClaudeMdRule) {
             sl.addClaudeMdRule(process.cwd(), '- ' + action.content);
             console.error('[fireauto-auto] CLAUDE.md 규칙 추가: ' + action.content.slice(0, 50));
