@@ -758,7 +758,7 @@ async function startServer() {
         const fs = require('fs');
         const path = require('path');
         const os = require('os');
-        const safeName = name.toLowerCase().replace(/[^a-z0-9가-힣\-]/g, '-').replace(/-+/g, '-');
+        const safeName = name.toLowerCase().replace(/[^a-z0-9\-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
         const skillDir = path.join(os.homedir(), '.claude', 'skills', safeName);
         if (!fs.existsSync(skillDir)) fs.mkdirSync(skillDir, { recursive: true });
         const skillContent = [
