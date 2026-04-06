@@ -729,6 +729,13 @@ async function startServer() {
       const { q, category } = req.query;
       const { searchSkills: dbSearchSkills } = loadDbModule();
       const skills = dbSearchSkills(db, { query: q, category, limit: 50 });
+      // 검색 결과가 있으면 사용 횟수 증가
+      if (q && skills.length > 0) {
+        try {
+          const { incrementSkillUsage } = loadDbModule();
+          skills.forEach(s => incrementSkillUsage(db, s.id));
+        } catch {}
+      }
       res.json({ skills });
     } catch (err) {
       console.error('[fireauto-mem] GET /api/skills error:', err.message);
@@ -813,6 +820,32 @@ async function startServer() {
       const id = dbLogMistake(db, { project, description, cause, fix, prevention, severity });
       broadcast({ event: 'mistake_logged', data: { id, project, severity } });
       res.json({ id });
+
+      // 후처리: Wiki gotchas.md 업데이트 + CLAUDE.md 규칙 추가 (fire-and-forget)
+      try {
+        const wm = loadWikiManager();
+        if (wm) {
+          const existing = wm.readPage('gotchas') || '# 주의사항\n';
+          const entry = '\n## ' + (description || '').slice(0, 50) + '\n'
+            + (cause ? '- 원인: ' + cause + '\n' : '')
+            + (fix ? '- 수정: ' + fix + '\n' : '')
+            + (prevention ? '- 방지: ' + prevention + '\n' : '')
+            + '- 심각도: ' + (severity || 'medium') + '\n';
+          wm.writePage('gotchas', existing + entry);
+          console.error('[fireauto-mem] gotchas.md 업데이트 완료');
+        }
+      } catch (wikiErr) { console.error('[fireauto-mem] gotchas wiki 실패:', wikiErr.message); }
+
+      // CLAUDE.md에 방지 규칙 추가
+      if (prevention) {
+        try {
+          const sl = loadSelfLearner();
+          if (sl && sl.addClaudeMdRule) {
+            sl.addClaudeMdRule(process.cwd(), '- ⚠️ ' + prevention);
+            console.error('[fireauto-mem] CLAUDE.md 규칙 추가: ' + prevention);
+          }
+        } catch (clErr) { console.error('[fireauto-mem] CLAUDE.md 규칙 추가 실패:', clErr.message); }
+      }
     } catch (err) {
       console.error('[fireauto-mem] POST /api/mistakes error:', err.message);
       res.status(500).json({ error: err.message });
