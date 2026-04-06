@@ -95,36 +95,52 @@ a:hover{text-decoration:underline}
 .progress-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
 .progress-text{font-size:13px;color:var(--text-secondary);margin-top:4px;display:block}
 .milestone-list{display:flex;flex-direction:column;gap:0}
-.milestone-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:4px solid var(--border);box-shadow:var(--shadow)}
+.milestone-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:4px solid var(--border);box-shadow:var(--shadow);cursor:pointer;transition:all .2s}
+.milestone-card:hover{box-shadow:var(--shadow-md)}
 .milestone-card.completed{border-left-color:var(--success);opacity:.7}
 .milestone-card.in_progress{border-left-color:var(--accent)}
 .milestone-card.pending{border-left-color:var(--text-tertiary)}
-.milestone-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.milestone-header{display:flex;align-items:center;gap:8px;margin-bottom:0}
 .milestone-icon{font-size:1rem}
 .milestone-title{font-weight:600;font-size:.9375rem;flex:1}
 .milestone-progress{font-size:.75rem;color:var(--text-secondary);background:var(--bg-secondary);padding:2px 8px;border-radius:4px}
+.milestone-chevron{font-size:.75rem;color:var(--text-tertiary);transition:transform .2s;margin-left:4px}
+.milestone-card.expanded .milestone-chevron{transform:rotate(90deg)}
+.milestone-card.expanded .milestone-header{margin-bottom:8px}
 .milestone-tasks{display:flex;flex-direction:column;gap:0}
 .task-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:.8125rem}
 .task-item:last-child{border-bottom:none}
-.task-item.completed{opacity:.6;text-decoration:line-through}
+.task-item.completed{opacity:.6}
+.task-item.completed .task-title{text-decoration:line-through}
 .task-check{flex-shrink:0}
 .task-title{flex:1;min-width:0}
-.task-priority{font-size:11px;padding:1px 6px;border-radius:3px;background:var(--accent-dim);color:var(--accent);flex-shrink:0}
+.task-priority{font-size:11px;padding:1px 6px;border-radius:3px;flex-shrink:0;font-weight:600}
+.task-priority.p0{background:rgba(239,68,68,.15);color:#ef4444}
+.task-priority.p1{background:rgba(249,115,22,.15);color:#f97316}
+.task-priority.p2{background:rgba(59,130,246,.15);color:#3b82f6}
+.task-priority.p3{background:rgba(107,114,128,.15);color:#6b7280}
 .task-memory{width:100%;font-size:12px;color:var(--text-tertiary);padding:4px 0 0 28px}
+.kanban{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+.kanban-col{background:var(--bg-secondary);border-radius:8px;padding:12px;min-height:200px}
+.kanban-col-title{font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.kanban-col-count{font-size:11px;font-weight:400;color:var(--text-tertiary);background:var(--bg-card);padding:1px 6px;border-radius:3px}
+.kanban-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow);transition:box-shadow .2s}
+.kanban-card:last-child{margin-bottom:0}
+.kanban-card:hover{box-shadow:var(--shadow-md)}
+.kanban-card.completed{opacity:.6}
+.kanban-card.completed .kanban-card-title{text-decoration:line-through}
+.kanban-card-header{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.kanban-card-icon{flex-shrink:0}
+.kanban-card-title{font-size:.8125rem;font-weight:500;flex:1;min-width:0;line-height:1.4}
+.kanban-card-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.kanban-card-priority{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600}
+.kanban-card-priority.p0{background:rgba(239,68,68,.15);color:#ef4444}
+.kanban-card-priority.p1{background:rgba(249,115,22,.15);color:#f97316}
+.kanban-card-priority.p2{background:rgba(59,130,246,.15);color:#3b82f6}
+.kanban-card-priority.p3{background:rgba(107,114,128,.15);color:#6b7280}
+.kanban-card-milestone{font-size:10px;color:var(--text-tertiary);background:var(--bg-secondary);padding:1px 6px;border-radius:3px}
+.kanban-empty{text-align:center;padding:24px 8px;color:var(--text-tertiary);font-size:.75rem}
 .search-hl{background:var(--accent-dim);border-radius:2px;padding:0 2px}
-#graphView{position:relative}
-#graph-canvas{width:100%;height:500px;background:var(--bg-secondary);border-radius:var(--radius);border:1px solid var(--border);cursor:grab;display:block}
-#graph-canvas:active{cursor:grabbing}
-.fullscreen-btn{position:absolute;top:8px;right:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-xs);padding:4px 10px;cursor:pointer;font-size:15px;z-index:5;color:var(--text-primary);transition:border-color .2s}
-.fullscreen-btn:hover{border-color:var(--accent)}
-#graphView.fullscreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:var(--bg-primary);padding:0;margin:0}
-#graphView.fullscreen #graph-canvas{height:100vh !important}
-.graph-tooltip{position:absolute;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);font-size:.8125rem;pointer-events:none;z-index:10;max-width:260px;display:none}
-.graph-tooltip .gt-title{font-weight:600;margin-bottom:2px}
-.graph-tooltip .gt-type{font-size:.75rem;color:var(--text-secondary)}
-.graph-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:.75rem;color:var(--text-secondary)}
-.graph-legend-item{display:flex;align-items:center;gap:4px}
-.graph-legend-dot{width:10px;height:10px;border-radius:50%}
 .load-more{text-align:center;padding:16px}
 .load-more-btn{background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 24px;font-size:.875rem;cursor:pointer;transition:background .2s,border-color .2s;font-family:var(--font)}
 .load-more-btn:hover{border-color:var(--accent);background:var(--accent-dim)}
@@ -135,6 +151,9 @@ a:hover{text-decoration:underline}
 .loading{text-align:center;padding:40px;color:var(--text-secondary);font-size:.875rem}
 .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:8px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:768px){
+  .kanban{grid-template-columns:1fr}
+}
 @media(max-width:600px){
   .header{padding:10px 12px;gap:8px}
   .search-box{width:140px}
@@ -143,7 +162,6 @@ a:hover{text-decoration:underline}
   .stats-bar{padding:6px 12px;gap:10px;font-size:.75rem}
   .card{padding:16px}
   .summary-card{padding:14px 16px}
-  #graph-canvas{height:350px}
   .header-tabs .tab-btn{padding:4px 10px;font-size:.75rem}
   .card-header{flex-wrap:wrap;gap:6px}
 }
@@ -161,7 +179,6 @@ a:hover{text-decoration:underline}
   <nav class="header-tabs" role="tablist" aria-label="뷰 전환">
     <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="projectView" id="tabProject" data-tab="project">프로젝트</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="timelineView" id="tabTimeline" data-tab="timeline">타임라인</button>
-    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="graphView" id="tabGraph" data-tab="graph">그래프</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="searchView" id="tabSearch" data-tab="search">검색</button>
   </nav>
   <div class="header-actions">
@@ -194,16 +211,6 @@ a:hover{text-decoration:underline}
       <button class="load-more-btn" id="loadMoreBtn">더 보기</button>
     </div>
   </section>
-  <!-- Graph View -->
-  <section class="tab-content" id="graphView" role="tabpanel" aria-labelledby="tabGraph">
-    <button id="graphFullscreen" class="fullscreen-btn" title="전체 화면">&#x26F6;</button>
-    <canvas id="graph-canvas" aria-label="지식 관계 그래프"></canvas>
-    <div class="graph-tooltip" id="graphTooltip">
-      <div class="gt-title"></div>
-      <div class="gt-type"></div>
-    </div>
-    <div class="graph-legend" id="graphLegend"></div>
-  </section>
   <!-- Search View -->
   <section class="tab-content" id="searchView" role="tabpanel" aria-labelledby="tabSearch">
     <div id="searchFeed" class="feed" role="feed" aria-label="검색 결과"></div>
@@ -221,13 +228,6 @@ pattern:  { label: 'PATTERN', ko: '패턴', color: '#f59e0b', bg: 'rgba(245,158,
 gotcha:   { label: 'GOTCHA', ko: '주의', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
 refactor: { label: 'REFACTOR', ko: '리팩토링', color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
 };
-var RELATION_CONFIG = {
-related:   { label: '관련', color: '#8b5cf6', dash: [] },
-caused_by: { label: '원인', color: '#ef4444', dash: [6, 3] },
-led_to:    { label: '결과', color: '#22c55e', dash: [4, 4] },
-same_file: { label: '같은 파일', color: '#f59e0b', dash: [2, 2] },
-same_tag:  { label: '같은 태그', color: '#3b82f6', dash: [8, 4] },
-};
 var state = {
 memories: [],
 summaries: [],
@@ -238,7 +238,6 @@ isConnected: false,
 stats: { total_memories: 0, total_relations: 0 },
 loading: false,
 activeTab: 'project',
-graphData: null,
 };
 var $feed = document.getElementById('feed');
 var $searchFeed = document.getElementById('searchFeed');
@@ -251,9 +250,6 @@ var $connDot = document.getElementById('connDot');
 var $connLabel = document.getElementById('connLabel');
 var $loadMoreWrap = document.getElementById('loadMoreWrap');
 var $loadMoreBtn = document.getElementById('loadMoreBtn');
-var $canvas = document.getElementById('graph-canvas');
-var $tooltip = document.getElementById('graphTooltip');
-var $legend = document.getElementById('graphLegend');
 var $emptyProject = document.getElementById('emptyProject');
 var $projectDashboard = document.getElementById('projectDashboard');
 var tabBtns = document.querySelectorAll('.tab-btn');
@@ -320,7 +316,7 @@ else setTheme('light');
 function setTheme(t) {
 document.documentElement.setAttribute('data-theme', t);
 localStorage.setItem('fireauto-theme', t);
-$themeToggle.textContent = t === 'dark' ? '☀️' : '🌙';
+$themeToggle.textContent = t === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
 }
 function toggleTheme() {
 var c = document.documentElement.getAttribute('data-theme');
@@ -334,11 +330,10 @@ b.classList.toggle('active', active);
 b.setAttribute('aria-selected', active ? 'true' : 'false');
 });
 tabContents.forEach(function(c) {
-var map = { project: 'projectView', timeline: 'timelineView', graph: 'graphView', search: 'searchView' };
+var map = { project: 'projectView', timeline: 'timelineView', search: 'searchView' };
 c.classList.toggle('active', c.id === map[tab]);
 });
 if (tab === 'project') loadProject();
-if (tab === 'graph') loadGraph();
 if (tab === 'search') $searchInput.focus();
 }
 var eventSource = null;
@@ -421,7 +416,7 @@ renderSearchResults(memories);
 }).catch(function() {
 clearEl($searchFeed);
 var es = el('div', 'empty-state');
-es.appendChild(el('div', 'es-icon', '⚠️'));
+es.appendChild(el('div', 'es-icon', '\u26A0\uFE0F'));
 es.appendChild(el('div', 'es-title', '검색 실패'));
 es.appendChild(el('div', 'es-desc', '다시 시도해주세요'));
 $searchFeed.appendChild(es);
@@ -521,10 +516,10 @@ narrativeBtn.classList.toggle('active', open);
 if (files.length || tags.length) {
 var meta = el('div', 'card-meta');
 files.forEach(function(f) {
-meta.appendChild(el('span', 'file-tag', '📁 ' + f));
+meta.appendChild(el('span', 'file-tag', '\uD83D\uDCC1 ' + f));
 });
 tags.forEach(function(t) {
-meta.appendChild(el('span', 'tag', '🏷️ ' + t));
+meta.appendChild(el('span', 'tag', '\uD83C\uDFF7\uFE0F ' + t));
 });
 card.appendChild(meta);
 }
@@ -541,20 +536,12 @@ observer.disconnect();
 fetchJSON('/api/memories/' + memory.id + '/related?depth=1').then(function(d) {
 var graph = d.graph || {};
 var nodes = graph.nodes || [];
-var edges = graph.edges || [];
 if (nodes.length <= 1) return;
 backlinksWrap.style.display = 'block';
-backlinksWrap.appendChild(el('div', 'backlinks-title', '── 연결된 지식 ──'));
-var edgeMap = {};
-edges.forEach(function(e) {
-var otherId = e.source === memory.id ? e.target : e.source;
-var rc = RELATION_CONFIG[e.relation_type] || { label: e.relation_type || '관련' };
-edgeMap[otherId] = rc.label;
-});
+backlinksWrap.appendChild(el('div', 'backlinks-title', '\u2500\u2500 연결된 지식 \u2500\u2500'));
 nodes.forEach(function(n) {
 if (n.id === memory.id) return;
-var relType = edgeMap[n.id] || '관련';
-var btn = el('button', 'backlink', '→ ' + (cleanTitle(n.title) || '#' + n.id) + ' (' + relType + ')');
+var btn = el('button', 'backlink', '\u2192 ' + (cleanTitle(n.title) || '#' + n.id));
 btn.addEventListener('click', function() {
 scrollToCard(n.id);
 });
@@ -568,7 +555,7 @@ observer.observe(backlinksWrap);
 var footer = el('div', 'card-footer');
 if (memory.id) {
 footer.appendChild(el('span', 'card-id', '#' + memory.id));
-footer.appendChild(document.createTextNode(' • '));
+footer.appendChild(document.createTextNode(' \u2022 '));
 }
 footer.appendChild(document.createTextNode(formatDateTime(memory.created_at_epoch)));
 card.appendChild(footer);
@@ -587,7 +574,7 @@ function buildSummaryCard(summary) {
 var card = el('div', 'summary-card');
 card.setAttribute('data-session-id', summary.session_id || '');
 var label = el('div', 'summary-label');
-label.textContent = '── 세션 요약 • ' + formatDate(summary.created_at_epoch) + ' ──';
+label.textContent = '\u2500\u2500 세션 요약 \u2022 ' + formatDate(summary.created_at_epoch) + ' \u2500\u2500';
 card.appendChild(label);
 var fields = el('div', 'summary-fields');
 var fieldDefs = [
@@ -606,7 +593,7 @@ fields.appendChild(sf);
 });
 if (fields.children.length) card.appendChild(fields);
 var footer = el('div', 'summary-footer');
-footer.textContent = (summary.session_id ? summary.session_id.substring(0, 8) + '...' : '') + ' • ' + formatDateTime(summary.created_at_epoch);
+footer.textContent = (summary.session_id ? summary.session_id.substring(0, 8) + '...' : '') + ' \u2022 ' + formatDateTime(summary.created_at_epoch);
 card.appendChild(footer);
 card.addEventListener('click', function() {
 if (card.style.maxHeight === 'none') {
@@ -635,7 +622,7 @@ items.push({ type: 'summary', data: s, epoch: s.created_at_epoch || 0 });
 items.sort(function(a, b) { return b.epoch - a.epoch; });
 if (!items.length) {
 var es = el('div', 'empty-state');
-es.appendChild(el('div', 'es-icon', '📭'));
+es.appendChild(el('div', 'es-icon', '\uD83D\uDCED'));
 es.appendChild(el('div', 'es-title', '아직 지식이 없습니다'));
 es.appendChild(el('div', 'es-desc', 'Claude Code 세션에서 지식이 축적되면 여기에 표시됩니다'));
 $feed.appendChild(es);
@@ -661,7 +648,7 @@ function renderSearchResults(memories) {
 clearEl($searchFeed);
 if (!memories.length) {
 var es = el('div', 'empty-state');
-es.appendChild(el('div', 'es-icon', '🔍'));
+es.appendChild(el('div', 'es-icon', '\uD83D\uDD0D'));
 es.appendChild(el('div', 'es-title', '검색 결과 없음'));
 es.appendChild(el('div', 'es-desc', '"' + state.searchQuery + '"에 대한 결과가 없습니다'));
 $searchFeed.appendChild(es);
@@ -687,7 +674,7 @@ $feed.appendChild(ld);
 function showError() {
 clearEl($feed);
 var es = el('div', 'empty-state');
-es.appendChild(el('div', 'es-icon', '⚠️'));
+es.appendChild(el('div', 'es-icon', '\u26A0\uFE0F'));
 es.appendChild(el('div', 'es-title', '연결할 수 없습니다'));
 es.appendChild(el('div', 'es-desc', 'Worker가 실행 중인지 확인해주세요 (포트 37888)'));
 $feed.appendChild(es);
@@ -701,10 +688,31 @@ var a=ps.find(function(p){return p.status==='active'})||ps[0];
 fetchJSON('/api/dashboard?projectId='+a.id).then(function(db){renderProjDash(db)}).catch(showEmptyProject);
 }).catch(showEmptyProject);
 }
-function statusIcon(s){return s==='completed'?'✅':s==='in_progress'?'🔄':'⬜'}
+function taskStatusIcon(s){
+if(s==='completed') return '\u2705';
+if(s==='in_progress') return '\uD83D\uDD04';
+if(s==='blocked') return '\uD83D\uDEAB';
+return '\u2B1C';
+}
+function milestoneStatusIcon(s){
+if(s==='completed') return '\u2705';
+if(s==='in_progress') return '\uD83D\uDD04';
+return '\u2B1C';
+}
+function priorityClass(p){
+if(!p) return '';
+var lower = p.toLowerCase();
+if(lower==='p0') return 'p0';
+if(lower==='p1') return 'p1';
+if(lower==='p2') return 'p2';
+if(lower==='p3') return 'p3';
+return '';
+}
 function renderProjDash(db){
 $emptyProject.style.display='none';$projectDashboard.style.display='';clearEl($projectDashboard);
-var p=db.project||db,ms=db.milestones||[],pct=db.percent||0;
+var p=db.project||db;
+var ms=db.milestones||[];
+var pct=db.overall_progress!=null?db.overall_progress:(db.percent||0);
 var hd=el('div','project-header');
 hd.appendChild(el('h2','project-name',p.name||'프로젝트'));
 var mt=el('div','project-meta');
@@ -717,366 +725,94 @@ ps.appendChild(el('span','progress-text',pct+'% 완료'));$projectDashboard.appe
 if(!ms.length)return;
 var ml=el('div','milestone-list');
 ms.forEach(function(m){
-var ts=m.tasks||[],done=ts.filter(function(t){return t.status==='completed'}).length;
+var ts=m.tasks||[];
+var done=ts.filter(function(t){return t.status==='completed'}).length;
+var mProgress=m.progress!=null?m.progress:null;
 var st=done===ts.length&&ts.length?'completed':ts.some(function(t){return t.status==='in_progress'})?'in_progress':'pending';
-var c=el('div','milestone-card '+st),mh=el('div','milestone-header');
-mh.appendChild(el('span','milestone-icon',statusIcon(st)));
+if(m.status) st=m.status;
+var c=el('div','milestone-card '+st);
+var mh=el('div','milestone-header');
+mh.appendChild(el('span','milestone-icon',milestoneStatusIcon(st)));
 mh.appendChild(el('span','milestone-title',m.title||m.name||''));
-mh.appendChild(el('span','milestone-progress',done+'/'+ts.length));c.appendChild(mh);
-if(ts.length){var tl=el('div','milestone-tasks');
-ts.forEach(function(t){var s=t.status||'pending',ti=el('div','task-item '+s);
-ti.appendChild(el('span','task-check',statusIcon(s)));
+mh.appendChild(el('span','milestone-progress',done+'/'+ts.length));
+mh.appendChild(el('span','milestone-chevron','\u25B6'));
+c.appendChild(mh);
+if(ts.length){
+var tl=el('div','milestone-tasks');
+var isActive=(st==='in_progress');
+tl.style.display=isActive?'flex':'none';
+if(isActive) c.classList.add('expanded');
+ts.forEach(function(t){
+var s=t.status||'pending';
+var ti=el('div','task-item '+s);
+ti.appendChild(el('span','task-check',taskStatusIcon(s)));
 ti.appendChild(el('span','task-title',t.title||t.name||''));
-if(t.priority)ti.appendChild(el('span','task-priority',t.priority));
+if(t.priority){
+var prBadge=el('span','task-priority '+priorityClass(t.priority),t.priority.toUpperCase());
+ti.appendChild(prBadge);
+}
 tl.appendChild(ti);
-if(t.related_memory)tl.appendChild(el('div','task-memory','💡 참고: '+t.related_memory));
-});c.appendChild(tl)}ml.appendChild(c)});
+if(t.related_memory)tl.appendChild(el('div','task-memory','\uD83D\uDCA1 참고: '+t.related_memory));
+});
+c.appendChild(tl);
+c.addEventListener('click',function(){
+var expanded=c.classList.toggle('expanded');
+tl.style.display=expanded?'flex':'none';
+});
+}
+ml.appendChild(c);
+});
 $projectDashboard.appendChild(ml);
-}
-var graphState = {
-nodes: [], edges: [],
-vx: {}, vy: {},
-dragging: null, dragOff: { x: 0, y: 0 },
-panX: 0, panY: 0, panStartX: 0, panStartY: 0, isPanning: false,
-scale: 1,
-hovered: null,
-animFrame: null,
-};
-function loadGraph() {
-var p = '?limit=100';
-if (state.currentProject) p += '&project=' + encodeURIComponent(state.currentProject);
-fetchJSON('/api/memories' + p).then(function(d) {
-var memories = d.memories || [];
-if (memories.length === 0) { renderGraphEmpty(); return; }
-var allNodes = {};
-var allEdges = {};
-memories.forEach(function(m) {
-allNodes[m.id] = { id: m.id, title: m.title || '', type: m.type || '', x: 0, y: 0 };
-});
-var ids = memories.map(function(m) { return m.id; });
-var batchSize = 10;
-var batches = [];
-for (var i = 0; i < ids.length; i += batchSize) {
-batches.push(ids.slice(i, i + batchSize));
-}
-var chainP = Promise.resolve();
-batches.forEach(function(batch) {
-chainP = chainP.then(function() {
-return Promise.all(batch.map(function(id) {
-return fetchJSON('/api/memories/' + id + '/related?depth=1').then(function(r) {
-var g = r.graph || {};
-(g.nodes || []).forEach(function(n) {
-if (!allNodes[n.id]) allNodes[n.id] = { id: n.id, title: n.title || '', type: n.type || '', x: 0, y: 0 };
-});
-(g.edges || []).forEach(function(e) {
-var key = e.source + '-' + e.target + '-' + e.relation_type;
-if (!allEdges[key]) allEdges[key] = e;
-});
-}).catch(function() {});
-}));
+var allTasks=[];
+ms.forEach(function(m){
+(m.tasks||[]).forEach(function(t){
+allTasks.push({task:t,milestone:m.title||m.name||''});
 });
 });
-chainP.then(function() {
-var nodes = Object.keys(allNodes).map(function(k) { return allNodes[k]; });
-var edges = Object.keys(allEdges).map(function(k) { return allEdges[k]; });
-initGraph(nodes, edges);
+if(allTasks.length){
+var kanban=el('div','kanban');
+var cols=[
+{key:'pending',title:'다음 할 일',icon:'\u2B1C'},
+{key:'in_progress',title:'진행 중',icon:'\uD83D\uDD04'},
+{key:'completed',title:'완료',icon:'\u2705'}
+];
+cols.forEach(function(col){
+var colDiv=el('div','kanban-col');
+var items=allTasks.filter(function(item){
+var s=item.task.status||'pending';
+if(col.key==='pending') return s==='pending';
+if(col.key==='in_progress') return s==='in_progress'||s==='blocked';
+return s==='completed';
 });
-}).catch(function() {
-renderGraphEmpty();
-});
+var titleDiv=el('div','kanban-col-title');
+titleDiv.appendChild(document.createTextNode(col.icon+' '+col.title));
+titleDiv.appendChild(el('span','kanban-col-count',''+items.length));
+colDiv.appendChild(titleDiv);
+if(!items.length){
+colDiv.appendChild(el('div','kanban-empty','태스크 없음'));
+}else{
+items.forEach(function(item){
+var t=item.task;
+var s=t.status||'pending';
+var card=el('div','kanban-card'+(s==='completed'?' completed':''));
+var hdr=el('div','kanban-card-header');
+hdr.appendChild(el('span','kanban-card-icon',taskStatusIcon(s)));
+hdr.appendChild(el('span','kanban-card-title',t.title||t.name||''));
+card.appendChild(hdr);
+var ft=el('div','kanban-card-footer');
+if(t.priority){
+ft.appendChild(el('span','kanban-card-priority '+priorityClass(t.priority),t.priority.toUpperCase()));
 }
-function renderGraphEmpty() {
-var ctx = $canvas.getContext('2d');
-resizeCanvas();
-ctx.clearRect(0, 0, $canvas.width, $canvas.height);
-ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim();
-ctx.font = '14px ' + getComputedStyle(document.body).fontFamily;
-ctx.textAlign = 'center';
-ctx.fillText('관계 데이터가 없습니다', $canvas.width / (2 * (window.devicePixelRatio || 1)), $canvas.height / (2 * (window.devicePixelRatio || 1)));
-}
-function resizeCanvas() {
-var rect = $canvas.getBoundingClientRect();
-var dpr = window.devicePixelRatio || 1;
-$canvas.width = rect.width * dpr;
-$canvas.height = rect.height * dpr;
-var ctx = $canvas.getContext('2d');
-ctx.scale(dpr, dpr);
-}
-function initGraph(nodes, edges) {
-graphState.nodes = nodes;
-graphState.edges = edges;
-graphState.vx = {}; graphState.vy = {};
-graphState.panX = 0; graphState.panY = 0;
-graphState.scale = 1; graphState.dragging = null; graphState.hovered = null;
-resizeCanvas();
-var rect = $canvas.getBoundingClientRect();
-var cx = rect.width / 2; var cy = rect.height / 2;
-nodes.forEach(function(n, i) {
-var angle = (2 * Math.PI * i) / nodes.length;
-var r = Math.min(cx, cy) * 0.6;
-n.x = cx + r * Math.cos(angle);
-n.y = cy + r * Math.sin(angle);
-graphState.vx[n.id] = 0;
-graphState.vy[n.id] = 0;
-});
-renderLegend();
-if (graphState.animFrame) cancelAnimationFrame(graphState.animFrame);
-simulateGraph();
-}
-function simulateGraph() {
-var nodes = graphState.nodes;
-var edges = graphState.edges;
-if (!nodes.length) { renderGraphEmpty(); return; }
-var nodeMap = {};
-nodes.forEach(function(n) { nodeMap[n.id] = n; });
-var iterations = 0;
-var maxIter = 300;
-function step() {
-iterations++;
-var damping = iterations < maxIter ? 0.85 : 0;
-var rect = $canvas.getBoundingClientRect();
-var W = rect.width; var H = rect.height;
-for (var i = 0; i < nodes.length; i++) {
-for (var j = i + 1; j < nodes.length; j++) {
-var dx = nodes[j].x - nodes[i].x;
-var dy = nodes[j].y - nodes[i].y;
-var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-var force = 2000 / (dist * dist);
-var fx = dx / dist * force;
-var fy = dy / dist * force;
-graphState.vx[nodes[i].id] -= fx;
-graphState.vy[nodes[i].id] -= fy;
-graphState.vx[nodes[j].id] += fx;
-graphState.vy[nodes[j].id] += fy;
-}
-}
-edges.forEach(function(e) {
-var s = nodeMap[e.source]; var t = nodeMap[e.target];
-if (!s || !t) return;
-var dx = t.x - s.x; var dy = t.y - s.y;
-var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-var force = (dist - 180) * 0.02;
-var fx = dx / dist * force;
-var fy = dy / dist * force;
-graphState.vx[s.id] += fx; graphState.vy[s.id] += fy;
-graphState.vx[t.id] -= fx; graphState.vy[t.id] -= fy;
-});
-nodes.forEach(function(n) {
-graphState.vx[n.id] += (W / 2 - n.x) * 0.003;
-graphState.vy[n.id] += (H / 2 - n.y) * 0.003;
-});
-nodes.forEach(function(n) {
-if (graphState.dragging && graphState.dragging.id === n.id) return;
-graphState.vx[n.id] *= damping;
-graphState.vy[n.id] *= damping;
-n.x += graphState.vx[n.id];
-n.y += graphState.vy[n.id];
-n.x = Math.max(30, Math.min(W - 30, n.x));
-n.y = Math.max(30, Math.min(H - 30, n.y));
-});
-drawGraph();
-if (iterations < maxIter + 60) {
-graphState.animFrame = requestAnimationFrame(step);
-}
-}
-step();
-}
-function drawGraph() {
-var ctx = $canvas.getContext('2d');
-var rect = $canvas.getBoundingClientRect();
-var W = rect.width; var H = rect.height;
-ctx.clearRect(0, 0, W, H);
-ctx.save();
-ctx.translate(graphState.panX, graphState.panY);
-ctx.scale(graphState.scale, graphState.scale);
-var nodeMap = {};
-graphState.nodes.forEach(function(n) { nodeMap[n.id] = n; });
-graphState.edges.forEach(function(e) {
-var s = nodeMap[e.source]; var t = nodeMap[e.target];
-if (!s || !t) return;
-var rc = RELATION_CONFIG[e.relation_type] || { color: '#6b7280', dash: [] };
-ctx.beginPath();
-ctx.strokeStyle = rc.color + '88';
-ctx.lineWidth = 1.5 * (e.confidence || 0.5) + 0.5;
-ctx.setLineDash(rc.dash || []);
-ctx.moveTo(s.x, s.y);
-ctx.lineTo(t.x, t.y);
-ctx.stroke();
-ctx.setLineDash([]);
-});
-var textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
-var fontFamily = getComputedStyle(document.body).fontFamily;
-graphState.nodes.forEach(function(n) {
-var tc = TYPE_CONFIG[n.type] || { color: '#6b7280', bg: 'rgba(107,114,128,0.15)' };
-var r = graphState.hovered && graphState.hovered.id === n.id ? 18 : 14;
-if (graphState.hovered && graphState.hovered.id === n.id) {
-ctx.beginPath();
-ctx.arc(n.x, n.y, r + 4, 0, Math.PI * 2);
-ctx.fillStyle = tc.color + '20';
-ctx.fill();
-}
-ctx.beginPath();
-ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
-ctx.fillStyle = tc.bg || (tc.color + '30');
-ctx.fill();
-ctx.strokeStyle = tc.color;
-ctx.lineWidth = 2;
-ctx.stroke();
-var label = cleanTitle(n.title) || '';
-if (label.length > 14) label = label.substring(0, 14) + '...';
-ctx.fillStyle = textColor;
-ctx.font = '11px ' + fontFamily;
-ctx.textAlign = 'center';
-ctx.fillText(label, n.x, n.y + r + 14);
-});
-ctx.restore();
-}
-function getNodeAt(mx, my) {
-var x = (mx - graphState.panX) / graphState.scale;
-var y = (my - graphState.panY) / graphState.scale;
-for (var i = graphState.nodes.length - 1; i >= 0; i--) {
-var n = graphState.nodes[i];
-var dx = n.x - x; var dy = n.y - y;
-if (dx * dx + dy * dy < 18 * 18) return n;
-}
-return null;
-}
-function renderLegend() {
-clearEl($legend);
-Object.keys(TYPE_CONFIG).forEach(function(t) {
-var tc = TYPE_CONFIG[t];
-var item = el('span', 'graph-legend-item');
-var dot = el('span', 'graph-legend-dot');
-dot.style.background = tc.color;
-item.appendChild(dot);
-item.appendChild(document.createTextNode(tc.label));
-$legend.appendChild(item);
-});
-Object.keys(RELATION_CONFIG).forEach(function(r) {
-var rc = RELATION_CONFIG[r];
-var item = el('span', 'graph-legend-item');
-var line = el('span', '');
-line.style.cssText = 'width:16px;height:2px;background:' + rc.color + ';display:inline-block;vertical-align:middle;margin-right:2px;border-radius:1px';
-item.appendChild(line);
-item.appendChild(document.createTextNode(rc.label));
-$legend.appendChild(item);
+ft.appendChild(el('span','kanban-card-milestone',item.milestone));
+card.appendChild(ft);
+colDiv.appendChild(card);
 });
 }
-$canvas.addEventListener('mousedown', function(e) {
-var rect = $canvas.getBoundingClientRect();
-var mx = e.clientX - rect.left; var my = e.clientY - rect.top;
-var node = getNodeAt(mx, my);
-if (node) {
-graphState.dragging = node;
-graphState.dragOff = { x: (mx - graphState.panX) / graphState.scale - node.x, y: (my - graphState.panY) / graphState.scale - node.y };
-} else {
-graphState.isPanning = true;
-graphState.panStartX = e.clientX - graphState.panX;
-graphState.panStartY = e.clientY - graphState.panY;
-}
+kanban.appendChild(colDiv);
 });
-$canvas.addEventListener('mousemove', function(e) {
-var rect = $canvas.getBoundingClientRect();
-var mx = e.clientX - rect.left; var my = e.clientY - rect.top;
-if (graphState.dragging) {
-graphState.dragging.x = (mx - graphState.panX) / graphState.scale - graphState.dragOff.x;
-graphState.dragging.y = (my - graphState.panY) / graphState.scale - graphState.dragOff.y;
-graphState.vx[graphState.dragging.id] = 0;
-graphState.vy[graphState.dragging.id] = 0;
-drawGraph();
-} else if (graphState.isPanning) {
-graphState.panX = e.clientX - graphState.panStartX;
-graphState.panY = e.clientY - graphState.panStartY;
-drawGraph();
-} else {
-var node = getNodeAt(mx, my);
-if (node !== graphState.hovered) {
-graphState.hovered = node;
-drawGraph();
-if (node) {
-$tooltip.style.display = 'block';
-$tooltip.style.left = (mx + 12) + 'px';
-$tooltip.style.top = (my - 8) + 'px';
-$tooltip.querySelector('.gt-title').textContent = cleanTitle(node.title) || '#' + node.id;
-var tc = TYPE_CONFIG[node.type] || { label: node.type || '', ko: '' };
-$tooltip.querySelector('.gt-type').textContent = tc.label + (tc.ko ? ' (' + tc.ko + ')' : '');
-} else {
-$tooltip.style.display = 'none';
-}
-} else if (node) {
-$tooltip.style.left = (mx + 12) + 'px';
-$tooltip.style.top = (my - 8) + 'px';
+$projectDashboard.appendChild(kanban);
 }
 }
-});
-$canvas.addEventListener('mouseup', function() {
-graphState.dragging = null;
-graphState.isPanning = false;
-});
-$canvas.addEventListener('mouseleave', function() {
-graphState.dragging = null;
-graphState.isPanning = false;
-graphState.hovered = null;
-$tooltip.style.display = 'none';
-drawGraph();
-});
-$canvas.addEventListener('wheel', function(e) {
-e.preventDefault();
-var delta = e.deltaY > 0 ? 0.9 : 1.1;
-graphState.scale = Math.max(0.3, Math.min(3, graphState.scale * delta));
-drawGraph();
-}, { passive: false });
-$canvas.addEventListener('touchstart', function(e) {
-if (e.touches.length === 1) {
-var t = e.touches[0];
-var rect = $canvas.getBoundingClientRect();
-var mx = t.clientX - rect.left; var my = t.clientY - rect.top;
-var node = getNodeAt(mx, my);
-if (node) {
-e.preventDefault();
-graphState.dragging = node;
-graphState.dragOff = { x: (mx - graphState.panX) / graphState.scale - node.x, y: (my - graphState.panY) / graphState.scale - node.y };
-} else {
-graphState.isPanning = true;
-graphState.panStartX = t.clientX - graphState.panX;
-graphState.panStartY = t.clientY - graphState.panY;
-}
-}
-}, { passive: false });
-$canvas.addEventListener('touchmove', function(e) {
-if (e.touches.length === 1) {
-e.preventDefault();
-var t = e.touches[0];
-var rect = $canvas.getBoundingClientRect();
-var mx = t.clientX - rect.left; var my = t.clientY - rect.top;
-if (graphState.dragging) {
-graphState.dragging.x = (mx - graphState.panX) / graphState.scale - graphState.dragOff.x;
-graphState.dragging.y = (my - graphState.panY) / graphState.scale - graphState.dragOff.y;
-graphState.vx[graphState.dragging.id] = 0;
-graphState.vy[graphState.dragging.id] = 0;
-drawGraph();
-} else if (graphState.isPanning) {
-graphState.panX = t.clientX - graphState.panStartX;
-graphState.panY = t.clientY - graphState.panStartY;
-drawGraph();
-}
-}
-}, { passive: false });
-$canvas.addEventListener('touchend', function() {
-graphState.dragging = null; graphState.isPanning = false;
-});
-window.addEventListener('resize', function() {
-if (state.activeTab === 'graph' && graphState.nodes.length) {
-resizeCanvas(); drawGraph();
-}
-});
-document.getElementById('graphFullscreen').onclick = function() {
-var gv = document.getElementById('graphView');
-gv.classList.toggle('fullscreen');
-this.textContent = gv.classList.contains('fullscreen') ? '✕' : '⛶';
-resizeCanvas();
-if (graphState.nodes.length) initGraph(graphState.nodes, graphState.edges);
-};
 var searchTimer = null;
 $searchInput.addEventListener('input', function(e) {
 clearTimeout(searchTimer);
@@ -1094,7 +830,6 @@ if (state.activeTab === 'search') switchTab('timeline');
 $projectFilter.addEventListener('change', function(e) {
 state.currentProject = e.target.value;
 loadMemories();
-if (state.activeTab === 'graph') loadGraph();
 });
 $themeToggle.addEventListener('click', toggleTheme);
 $loadMoreBtn.addEventListener('click', function() { loadMemories(); });

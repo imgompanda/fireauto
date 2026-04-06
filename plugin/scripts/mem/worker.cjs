@@ -377,7 +377,7 @@ async function startServer() {
       const project = projects[0];
 
       const milestones = _rows(db.exec(
-        'SELECT * FROM milestones WHERE project_id = ? ORDER BY sort_order ASC, id ASC', [id]
+        'SELECT * FROM milestones WHERE project_id = ? ORDER BY order_index ASC, id ASC', [id]
       ));
       const tasks = _rows(db.exec(
         'SELECT * FROM tasks WHERE project_id = ? ORDER BY id ASC', [id]
@@ -468,7 +468,7 @@ async function startServer() {
         return res.json({ milestones: pm.listMilestones(db, projectId) });
       }
       const milestones = _rows(db.exec(
-        'SELECT * FROM milestones WHERE project_id = ? ORDER BY sort_order ASC, id ASC',
+        'SELECT * FROM milestones WHERE project_id = ? ORDER BY order_index ASC, id ASC',
         [projectId]
       ));
       res.json({ milestones });
@@ -583,49 +583,49 @@ async function startServer() {
   // ── GET /api/dashboard ────────────────────────────────
   app.get('/api/dashboard', async (req, res) => {
     try {
-      const { projectId } = req.query;
+      const projectId = req.query.projectId ? parseInt(req.query.projectId, 10) : null;
 
+      // project-manager 시도
       const pm = loadProjectManager();
-      if (pm && pm.getDashboard) {
-        const dashboard = pm.getDashboard(db, projectId ? parseInt(projectId, 10) : undefined);
+      if (pm && pm.getProjectDashboard) {
+        const dashboard = pm.getProjectDashboard(db, projectId);
         return res.json(dashboard);
       }
 
-      // fallback: assemble dashboard data from raw DB
-      const dashboard = { projects: [], milestones: [], tasks: [], progress: 0, relatedMemories: [] };
+      // fallback: 직접 SQL로 마일스톤-태스크 중첩 구조 생성
+      // 1. 프로젝트 조회
+      const projects = _rows(db.exec(
+        projectId
+          ? 'SELECT * FROM projects WHERE id = ?'
+          : "SELECT * FROM projects WHERE status = 'active' ORDER BY created_at_epoch DESC LIMIT 1",
+        projectId ? [projectId] : []
+      ));
+      if (!projects.length) return res.json({ error: 'No project found' });
+      const project = projects[0];
 
-      if (projectId) {
-        const pid = parseInt(projectId, 10);
-        const projects = _rows(db.exec('SELECT * FROM projects WHERE id = ?', [pid]));
-        dashboard.projects = projects;
+      // 2. 마일스톤 + 태스크 중첩
+      const milestones = _rows(db.exec(
+        'SELECT * FROM milestones WHERE project_id = ? ORDER BY order_index ASC, id ASC',
+        [project.id]
+      ));
+      let totalTasks = 0, completedTasks = 0;
 
-        const milestones = _rows(db.exec(
-          'SELECT * FROM milestones WHERE project_id = ? ORDER BY sort_order ASC, id ASC', [pid]
+      for (const m of milestones) {
+        m.tasks = _rows(db.exec(
+          'SELECT * FROM tasks WHERE milestone_id = ? ORDER BY order_index ASC, id ASC',
+          [m.id]
         ));
-        dashboard.milestones = milestones;
-
-        const tasks = _rows(db.exec(
-          'SELECT * FROM tasks WHERE project_id = ? ORDER BY id ASC', [pid]
-        ));
-        dashboard.tasks = tasks;
-
-        const totalTasks = tasks.length;
-        const completedTasks = tasks.filter(t => t.status === 'done').length;
-        dashboard.progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-        // 관련 메모리: 프로젝트 이름으로 검색
-        if (projects.length && projects[0].name) {
-          try {
-            const memories = searchMemories(db, { query: projects[0].name, limit: 10 });
-            dashboard.relatedMemories = memories;
-          } catch { /* ignore */ }
-        }
-      } else {
-        // 전체 프로젝트 요약
-        dashboard.projects = _rows(db.exec('SELECT * FROM projects ORDER BY created_at_epoch DESC'));
+        const done = m.tasks.filter(t => t.status === 'completed').length;
+        m.progress = m.tasks.length ? Math.round(done / m.tasks.length * 100) : 0;
+        totalTasks += m.tasks.length;
+        completedTasks += done;
       }
 
-      res.json(dashboard);
+      res.json({
+        project,
+        overall_progress: totalTasks ? Math.round(completedTasks / totalTasks * 100) : 0,
+        milestones,
+      });
     } catch (err) {
       console.error('[fireauto-mem] GET /api/dashboard error:', err.message);
       res.status(500).json({ error: err.message });
