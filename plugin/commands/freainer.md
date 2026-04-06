@@ -168,7 +168,53 @@ npm install -g typescript typescript-language-server
 
 ---
 
-## Step 5: 최종 확인
+## Step 5: fireauto 스킬 자동 트리거 설정
+
+fireauto 플러그인의 스킬들이 특정 상황에서 자동으로 활성화되도록 CLAUDE.md에 규칙을 추가해요.
+
+### 유저에게 범위를 물어보세요:
+
+> fireauto 스킬 자동 트리거를 어디에 적용할까요?
+> 1. **전체** — 모든 프로젝트에서 자동 트리거 (`~/.claude/CLAUDE.md`)
+> 2. **이 프로젝트만** — 현재 프로젝트에서만 자동 트리거 (`.claude/CLAUDE.md`)
+> 3. **건너뛰기** — 나중에 설정할게요
+
+### 선택에 따라 해당 CLAUDE.md에 아래 내용을 추가하세요:
+
+```markdown
+## fireauto 자동 트리거 규칙
+
+### 메모리 시스템 (fireauto-mem)
+- 코드를 수정하거나 새 기능을 구현할 때, 해당 파일/주제에 관련된 과거 지식이 있는지 memory-search MCP 도구로 능동적으로 확인하고 답변에 반영할 것.
+- 버그 수정, 패턴 발견, 설계 결정, 주의사항 등 가치 있는 지식이 발생하면 memory-save MCP 도구로 능동적으로 저장할 것. 사용자가 요청하지 않아도 자동으로 저장.
+- 프로젝트 마일스톤 완료, 인수인계, 회고 시 memory-compile MCP 도구로 축적된 지식을 종합할 것.
+
+### SEO/보안 점검
+- 웹 프로젝트에서 배포 전이나 기능 완성 시 SEO 관련 이슈가 없는지 fireauto-seo-guide 스킬을 참고할 것.
+- 인증, API, 파일 업로드 등 보안 민감 코드를 수정할 때 fireauto-secure-guide 스킬을 참고할 것.
+
+### 코드 탐색
+- 코드 탐색 시 LSP 도구를 Grep/Glob보다 먼저 사용할 것 (fireauto-lsp-guide 참고).
+
+### UI 개발
+- DaisyUI 컴포넌트를 사용하거나 UI를 구축할 때 fireauto-ui-guide 스킬을 참고할 것.
+```
+
+### 적용 위치:
+
+| 선택 | 파일 경로 | 효과 |
+|------|----------|------|
+| 전체 | `~/.claude/CLAUDE.md` | 모든 프로젝트에서 자동 트리거 |
+| 이 프로젝트만 | `.claude/CLAUDE.md` (프로젝트 루트) | 이 프로젝트에서만 |
+
+### 주의:
+- 파일이 없으면 새로 만드세요.
+- **기존 내용을 절대 덮어쓰지 마세요.** 맨 아래에 추가하세요.
+- 이미 비슷한 내용이 있으면 건너뛰세요.
+
+---
+
+## Step 6: 최종 확인
 
 설치가 끝나면 유저에게 아래 내용을 보여주세요:
 
@@ -184,6 +230,10 @@ npm install -g typescript typescript-language-server
   • LSP — 코드 탐색 극대화
   • 알림 훅 — 작업 완료 시 macOS 알림
   • 에이전트 팀 — 멀티 에이전트 협업
+  • 스킬 자동 트리거 — 메모리/SEO/보안/UI 스킬이 상황에 맞게 자동 활성화
+
+💡 추가 추천:
+  • /memory-install — 개발 지식 데이터베이스 자동 구축
 
 ⚠️ Claude Code를 재시작해야 모든 설정이 적용돼요!
 ```
