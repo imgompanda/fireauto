@@ -134,6 +134,75 @@ function updateMemoryWithAI(db, id, aiResult) {
   }
 }
 
+// ── Auto-action executor (Haiku 판단 → 자동 실행) ────────────
+function executeActions(db, actions, project) {
+  if (!actions || !actions.length) return;
+  actions.forEach(function(action) {
+    try {
+      switch (action.type) {
+        case 'mistake': {
+          // "설명 | 원인 | 수정 | 방지법"
+          const parts = action.content.split('|').map(function(s) { return s.trim(); });
+          const dbMod = loadDbModule();
+          if (dbMod.logMistake) {
+            dbMod.logMistake(db, {
+              project: project || 'unknown',
+              description: parts[0] || action.content,
+              cause: parts[1] || null,
+              fix: parts[2] || null,
+              prevention: parts[3] || null,
+              severity: 'medium',
+            });
+            console.error('[fireauto-auto] 실수 자동 기록: ' + (parts[0] || '').slice(0, 50));
+          }
+          // gotchas.md 자동 업데이트
+          var wm = loadWikiManager();
+          if (wm) {
+            var existing = wm.readPage('gotchas') || '# 주의사항\n';
+            wm.writePage('gotchas', existing + '\n## ' + (parts[0] || '').slice(0, 50) + '\n- ' + action.content + '\n');
+          }
+          break;
+        }
+        case 'skill': {
+          // "스킬 이름 | 설명 | 카테고리"
+          var parts = action.content.split('|').map(function(s) { return s.trim(); });
+          var dbMod = loadDbModule();
+          if (dbMod.saveSkill) {
+            dbMod.saveSkill(db, {
+              name: parts[0] || 'auto-skill',
+              description: parts[1] || '',
+              content: action.content,
+              category: parts[2] || 'auto',
+              source_project: project,
+            });
+            console.error('[fireauto-auto] 스킬 자동 생성: ' + (parts[0] || '').slice(0, 50));
+          }
+          break;
+        }
+        case 'wiki': {
+          var wm = loadWikiManager();
+          if (wm && action.page) {
+            var existing = wm.readPage(action.page) || '# ' + action.page + '\n';
+            wm.writePage(action.page, existing + '\n' + action.content + '\n');
+            console.error('[fireauto-auto] Wiki ' + action.page + ' 업데이트');
+          }
+          break;
+        }
+        case 'rule': {
+          var sl = loadSelfLearner();
+          if (sl && sl.addClaudeMdRule) {
+            sl.addClaudeMdRule(process.cwd(), '- ' + action.content);
+            console.error('[fireauto-auto] CLAUDE.md 규칙 추가: ' + action.content.slice(0, 50));
+          }
+          break;
+        }
+      }
+    } catch (e) {
+      console.error('[fireauto-auto] 액션 실행 실패:', action.type, e.message);
+    }
+  });
+}
+
 // ── SSE ───────────────────────────────────────────────────────
 function broadcast(event) {
   const data = JSON.stringify(event);
@@ -270,11 +339,15 @@ async function startServer() {
           if (result.observations?.length > 0) {
             const obs = result.observations[0];
             updateMemoryWithAI(db, id, obs);
-            // AI 필드 포함하여 SSE 업데이트 브로드캐스트
             broadcast({
               event: 'memory_enriched',
               data: { id, subtitle: obs.subtitle, narrative: obs.narrative, type: obs.type },
             });
+          }
+          // Haiku가 판단한 자동 액션 실행 (스킬 생성, 실수 기록, Wiki 업데이트 등)
+          if (result.actions?.length > 0) {
+            executeActions(db, result.actions, project);
+            console.error('[fireauto-mem] 자동 액션 ' + result.actions.length + '건 실행');
           }
         }
       } catch (err) {

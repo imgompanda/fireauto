@@ -68,7 +68,25 @@ title에 도구 이름(Edit, Bash, Write)을 넣지 마세요. 사람이 읽기 
 - pattern: 패턴/모범 사례 발견
 - decision: 설계 결정
 - gotcha: 주의사항/함정 발견
-- refactor: 코드 리팩토링`;
+- refactor: 코드 리팩토링
+
+## 자동 액션 판단
+
+관찰 후, 추가로 해야 할 액션이 있으면 <actions> 태그로 알려주세요.
+해당 없으면 <actions/> 빈 태그.
+
+<actions>
+  <action type="mistake">실수 설명 | 원인 | 수정 | 방지법</action>
+  <action type="skill">스킬 이름 | 설명 | 카테고리</action>
+  <action type="wiki" page="gotchas">추가할 내용</action>
+  <action type="rule">CLAUDE.md에 추가할 규칙</action>
+</actions>
+
+예시:
+- 같은 파일을 3번 이상 비슷하게 수정 → type="skill"
+- 에러를 고치는 작업 → type="mistake" + type="wiki" page="gotchas"
+- 중요한 설계 결정 → type="wiki" page="decisions"
+- 반복 실수 방지 규칙 → type="rule"`;
 }
 
 // ── Observation Prompt ────────────────────────────────────

@@ -144,12 +144,38 @@ function extractArray(content, arrayName, itemName) {
   }
 }
 
+// ── Actions Parser ───────────────────────────────────────
+
+/**
+ * <actions> 블록에서 자동 액션을 파싱
+ * @param {string} text
+ * @returns {Array<{type: string, page?: string, content: string}>}
+ */
+function parseActions(text) {
+  if (!text) return [];
+  const actionsMatch = /<actions>([\s\S]*?)<\/actions>/.exec(text);
+  if (!actionsMatch) return [];
+
+  const actions = [];
+  const actionRegex = /<action\s+type="([^"]+)"(?:\s+page="([^"]+)")?\s*>([\s\S]*?)<\/action>/g;
+  let m;
+  while ((m = actionRegex.exec(actionsMatch[1])) !== null) {
+    actions.push({
+      type: m[1].trim(),
+      page: m[2] ? m[2].trim() : null,
+      content: m[3].trim(),
+    });
+  }
+  return actions;
+}
+
 // ── Exports ───────────────────────────────────────────────
 
 module.exports = {
   VALID_TYPES,
   parseObservations,
   parseSummary,
+  parseActions,
   extractField,
   extractArray,
 };

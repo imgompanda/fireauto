@@ -296,10 +296,11 @@ async function processObservation(observation) {
     }
 
     const observations = parser.parseObservations(text);
-    return { observations, tokens };
+    const actions = parser.parseActions ? parser.parseActions(text) : [];
+    return { observations, actions, tokens };
   } catch (err) {
     console.error('[sdk-agent] processObservation failed:', err.message);
-    return { observations: [], tokens: { input: 0, output: 0 } };
+    return { observations: [], actions: [], tokens: { input: 0, output: 0 } };
   }
 }
 
