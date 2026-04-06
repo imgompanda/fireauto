@@ -945,6 +945,37 @@ async function startServer() {
   });
 
   // ══════════════════════════════════════════════════════════
+  // ── Settings API ──────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════
+
+  const SETTINGS_PATH = require('path').join(require('os').homedir(), '.fireauto-mem', 'settings.json');
+
+  function loadUserSettings() {
+    try { return JSON.parse(require('fs').readFileSync(SETTINGS_PATH, 'utf8')); }
+    catch { return { model: 'claude-haiku-4-5-20251001' }; }
+  }
+  function saveUserSettings(s) {
+    require('fs').writeFileSync(SETTINGS_PATH, JSON.stringify(s, null, 2), 'utf8');
+  }
+
+  app.get('/api/settings', (req, res) => {
+    res.json(loadUserSettings());
+  });
+
+  app.post('/api/settings', (req, res) => {
+    try {
+      const current = loadUserSettings();
+      const updated = { ...current, ...req.body };
+      saveUserSettings(updated);
+      // 모델 변경 시 환경변수도 업데이트 (현재 Worker 프로세스)
+      if (updated.model) process.env.FIREAUTO_MEM_MODEL = updated.model;
+      res.json({ ok: true, settings: updated });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════
 
   // ── GET /api/health-check ────────────────────────────────
   app.get('/api/health-check', async (req, res) => {

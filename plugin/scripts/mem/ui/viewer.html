@@ -176,6 +176,24 @@ a:hover{text-decoration:underline}
 .mistake-card-prevention{font-size:.75rem;color:var(--text-secondary);font-style:italic}
 .mistake-card-meta{font-size:.6875rem;color:var(--text-tertiary);margin-top:4px}
 .empty-section{text-align:center;padding:24px;color:var(--text-tertiary);font-size:.8125rem}
+.settings-panel{max-width:600px;margin:0 auto}
+.settings-panel h3{font-size:1.125rem;margin-bottom:8px}
+.settings-desc{font-size:.8125rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.5}
+.model-selector{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.model-option{cursor:pointer}
+.model-option input{display:none}
+.model-card{border:2px solid var(--border);border-radius:10px;padding:14px 16px;transition:all .2s;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.model-option input:checked + .model-card{border-color:var(--accent);background:var(--accent-dim)}
+.model-card:hover{border-color:var(--accent)}
+.model-name{font-weight:700;font-size:.9375rem;min-width:80px}
+.model-badge{font-size:.625rem;padding:2px 8px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.model-badge.recommended{background:rgba(34,197,94,.15);color:#22c55e}
+.model-badge.balanced{background:rgba(59,130,246,.15);color:#3b82f6}
+.model-badge.premium{background:rgba(139,92,246,.15);color:#8b5cf6}
+.model-desc{font-size:.8125rem;color:var(--text-secondary);flex:1;min-width:150px}
+.model-spec{font-size:.6875rem;color:var(--text-tertiary);width:100%;margin-top:2px}
+.settings-note{font-size:.75rem;color:var(--text-tertiary);padding:10px;background:var(--bg-secondary);border-radius:8px;line-height:1.5}
+#settingsSaveStatus{font-size:.8125rem;margin-top:8px;color:var(--success)}
 .search-hl{background:var(--accent-dim);border-radius:2px;padding:0 2px}
 .load-more{text-align:center;padding:16px}
 .load-more-btn{background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 24px;font-size:.875rem;cursor:pointer;transition:background .2s,border-color .2s;font-family:var(--font)}
@@ -225,6 +243,7 @@ a:hover{text-decoration:underline}
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="wikiView" id="tabWiki" data-tab="wiki">Wiki</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="skillsView" id="tabSkills" data-tab="skills">스킬</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="searchView" id="tabSearch" data-tab="search">검색</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="settingsView" id="tabSettings" data-tab="settings">설정</button>
   </nav>
   <div class="header-actions">
     <input type="search" class="search-box" id="searchInput" placeholder="검색..." aria-label="메모리 검색">
@@ -281,6 +300,44 @@ a:hover{text-decoration:underline}
       <div id="mistakesList"></div>
     </div>
     </div><!-- skills-layout -->
+  </section>
+  <!-- Settings View -->
+  <section class="tab-content" id="settingsView" role="tabpanel" aria-labelledby="tabSettings" style="display:none">
+    <div class="settings-panel">
+      <h3>하네스 AI 모델 설정</h3>
+      <p class="settings-desc">fireauto 하네스 시스템이 작업을 분석할 때 사용하는 AI 모델이에요. Agent SDK를 통해 <strong>구독 요금제</strong>를 사용합니다.</p>
+      <div class="model-selector">
+        <label class="model-option">
+          <input type="radio" name="model" value="claude-haiku-4-5-20251001">
+          <div class="model-card">
+            <div class="model-name">Haiku 4.5</div>
+            <div class="model-badge recommended">권장</div>
+            <div class="model-desc">빠르고 가벼움. 일상 작업 분석에 충분해요.</div>
+            <div class="model-spec">속도: 매우 빠름 | 비용: 최소</div>
+          </div>
+        </label>
+        <label class="model-option">
+          <input type="radio" name="model" value="claude-sonnet-4-6">
+          <div class="model-card">
+            <div class="model-name">Sonnet 4.6</div>
+            <div class="model-badge balanced">균형</div>
+            <div class="model-desc">더 정교한 분석. 복잡한 패턴 감지에 좋아요.</div>
+            <div class="model-spec">속도: 빠름 | 비용: 중간</div>
+          </div>
+        </label>
+        <label class="model-option">
+          <input type="radio" name="model" value="claude-opus-4-6">
+          <div class="model-card">
+            <div class="model-name">Opus 4.6</div>
+            <div class="model-badge premium">고성능</div>
+            <div class="model-desc">최고 품질 분석. 깊은 맥락 이해가 필요할 때.</div>
+            <div class="model-spec">속도: 보통 | 비용: 높음</div>
+          </div>
+        </label>
+      </div>
+      <div class="settings-note">구독 요금제(Claude Max/Pro)의 토큰을 사용해요. Haiku를 권장하지만, 고성능이 필요하면 변경하세요.</div>
+      <div id="settingsSaveStatus"></div>
+    </div>
   </section>
   <!-- Search View -->
   <section class="tab-content" id="searchView" role="tabpanel" aria-labelledby="tabSearch">
@@ -401,7 +458,7 @@ b.classList.toggle('active', active);
 b.setAttribute('aria-selected', active ? 'true' : 'false');
 });
 tabContents.forEach(function(c) {
-var map = { project: 'projectView', timeline: 'timelineView', wiki: 'wikiView', skills: 'skillsView', search: 'searchView' };
+var map = { project: 'projectView', timeline: 'timelineView', wiki: 'wikiView', skills: 'skillsView', search: 'searchView', settings: 'settingsView' };
 c.classList.toggle('active', c.id === map[tab]);
 if (c.id === map[tab]) c.style.display = '';
 else c.style.display = 'none';
@@ -413,6 +470,7 @@ if ($mainEl) {
 if (tab === 'project') loadProject();
 if (tab === 'wiki') loadWiki();
 if (tab === 'skills') loadSkills();
+if (tab === 'settings') loadSettings();
 if (tab === 'search') $searchInput.focus();
 }
 var eventSource = null;
@@ -1046,6 +1104,30 @@ sevOrder.forEach(function(sev) {
   });
 });
 });
+}
+// ── Settings ──
+function loadSettings() {
+  fetchJSON('/api/settings').then(function(d) {
+    var model = d.model || 'claude-haiku-4-5-20251001';
+    var radios = document.querySelectorAll('input[name="model"]');
+    radios.forEach(function(r) {
+      r.checked = r.value === model;
+      r.onchange = function() { saveModelSetting(r.value); };
+    });
+  });
+}
+function saveModelSetting(model) {
+  fetch('/api/settings', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({model: model})
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    var status = document.getElementById('settingsSaveStatus');
+    if (d.ok) {
+      status.textContent = '✅ 모델이 ' + model + '로 변경됐어요.';
+      setTimeout(function() { status.textContent = ''; }, 3000);
+    }
+  });
 }
 var searchTimer = null;
 $searchInput.addEventListener('input', function(e) {
