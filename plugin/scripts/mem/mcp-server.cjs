@@ -85,18 +85,7 @@ async function safeCall(fn) {
 }
 
 // ── Parent process heartbeat (zombie prevention) ──────────────
-
-const parentPid = process.ppid;
-const heartbeatTimer = setInterval(() => {
-  try {
-    process.kill(parentPid, 0);
-  } catch {
-    console.error(LOG_PREFIX, '부모 프로세스 종료 감지 — MCP 서버를 종료합니다.');
-    clearInterval(heartbeatTimer);
-    process.exit(0);
-  }
-}, 30000);
-heartbeatTimer.unref();
+// main() 연결 후에 시작하도록 main 안으로 이동
 
 // ── Main ─────────────────────────────────────────────────────
 
@@ -658,6 +647,14 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error(LOG_PREFIX, 'MCP 서버가 시작되었습니다 (stdio)');
+
+  // 연결 후 heartbeat 시작 (좀비 방지)
+  const parentPid = process.ppid;
+  const hb = setInterval(() => {
+    try { process.kill(parentPid, 0); }
+    catch { clearInterval(hb); process.exit(0); }
+  }, 30000);
+  hb.unref();
 }
 
 main().catch((err) => {
