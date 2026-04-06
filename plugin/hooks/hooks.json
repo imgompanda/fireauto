@@ -1,5 +1,5 @@
 {
-  "description": "fireauto hooks - 루프 시스템 + 메모리 시스템",
+  "description": "fireauto hooks - 루프 + 메모리 + 자기학습 + 복기",
   "hooks": {
     "SessionStart": [
       {
@@ -9,6 +9,24 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/session-start.sh",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/inject-context.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/detect-mistake.sh",
+            "timeout": 5,
+            "async": true
           }
         ]
       }
@@ -21,16 +39,24 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/save-observation.sh",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/post-tool-check.sh",
+            "timeout": 5,
+            "async": true
           }
         ]
       }
     ],
     "Stop": [
       {
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.sh",
+            "timeout": 15
           }
         ]
       },
