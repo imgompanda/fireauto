@@ -911,7 +911,7 @@ $projectDashboard.appendChild(kanban);
 }
 function loadWiki() {
 fetchJSON('/api/wiki/index').then(function(d) {
-var pages = d.pages || [];
+var pages = (d.pages || []).filter(function(p){return p !== 'index';});
 var list = document.getElementById('wikiPageList');
 clearEl(list);
 if (!pages.length) {
