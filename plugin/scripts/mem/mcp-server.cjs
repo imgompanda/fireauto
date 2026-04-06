@@ -151,9 +151,10 @@ async function main() {
           return { content: [{ type: 'text', text: `최근 ${days}일간 활동 기록이 없습니다.` }] };
         }
 
-        const lines = result.entries.map((e) =>
-          `${e.created_at || e.date || ''} | ${e.type || ''} | ${e.title || e.summary || ''}`,
-        );
+        const lines = result.entries.map((e) => {
+          const d = e.data || e;
+          return `${d.created_at || d.date || ''} | ${d.type || ''} | ${d.title || d.summary || ''}`;
+        });
         const text = `최근 ${days}일 타임라인 (${result.entries.length}건):\n\n` + lines.join('\n');
         return { content: [{ type: 'text', text }] };
       });
@@ -236,14 +237,16 @@ async function main() {
       return safeCall(async () => {
         const result = await callWorker('GET', `/api/memories/${id}/related${qs({ depth: Math.min(depth, 3) })}`);
 
-        if (!result.memories || result.memories.length === 0) {
+        const graph = result.graph || {};
+        const nodes = graph.nodes || [];
+        if (!nodes.length) {
           return { content: [{ type: 'text', text: `메모리 #${id}와 관련된 메모리가 없습니다.` }] };
         }
 
-        const lines = result.memories.map((m) =>
+        const lines = nodes.map((m) =>
           `[${m.id}] ${m.title} (${m.type}) — 관련도: ${m.relevance || '-'}`,
         );
-        const text = `메모리 #${id} 관련 ${result.memories.length}건 (깊이 ${depth}):\n\n` + lines.join('\n');
+        const text = `메모리 #${id} 관련 ${nodes.length}건 (깊이 ${depth}):\n\n` + lines.join('\n');
         return { content: [{ type: 'text', text }] };
       });
     },
@@ -292,8 +295,9 @@ async function main() {
         const lines = [];
 
         // 프로젝트 정보
-        if (result.projects && result.projects.length > 0) {
-          const p = result.projects[0];
+        const proj = result.project || (result.projects && result.projects[0]);
+        if (proj) {
+          const p = proj;
           lines.push(`## ${p.name}${p.description ? ' — ' + p.description : ''}`);
           lines.push(`상태: ${p.status || '-'} | 진행률: ${result.progress || 0}%`);
           lines.push('');
@@ -403,7 +407,7 @@ async function main() {
           return { content: [{ type: 'text', text: '다음 태스크가 없습니다. 모든 태스크가 완료되었거나 프로젝트가 없습니다.' }] };
         }
 
-        const t = result.task;
+        const t = result.task?.task || result.task;
         const lines = [
           `## 다음 태스크`,
           `#${t.id}: ${t.title}`,

@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "fireauto",
-      "version": "1.0.0",
+      "version": "2.1.0",
       "source": "./plugin",
       "description": "Claude Code 자동화 플러그인 — PRD, 레딧 리서치, 팀 에이전트, SEO, 보안, UI"
     }

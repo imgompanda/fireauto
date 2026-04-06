@@ -44,7 +44,7 @@ function generateSessionContext(db, options = {}) {
 
   // 2. 마일스톤 목록 조회
   const milestones = safeCall(() =>
-    dbMod.listMilestones(db, { projectId: project.id }),
+    dbMod.listMilestones(db, project.id),
   ) || [];
 
   // 3. 진행률 계산
@@ -61,7 +61,7 @@ function generateSessionContext(db, options = {}) {
   let tasks = [];
   if (activeMilestone) {
     tasks = safeCall(() =>
-      dbMod.listTasks(db, { milestoneId: activeMilestone.id }),
+      dbMod.listTasks(db, { milestone_id: activeMilestone.id }),
     ) || [];
   }
 

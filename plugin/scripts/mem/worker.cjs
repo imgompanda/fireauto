@@ -25,15 +25,16 @@ function loadDbModule() {
 }
 
 // ── SDK Agent module (lazy, graceful if absent) ───────────────
-let sdkAgentMod = null;
+let sdkAgentMod;
+let sdkAgentLoaded = false;
 function loadSdkAgent() {
-  if (sdkAgentMod === undefined) return null;
-  if (sdkAgentMod) return sdkAgentMod;
+  if (sdkAgentLoaded) return sdkAgentMod;
+  sdkAgentLoaded = true;
   try {
     sdkAgentMod = require('./sdk-agent.cjs');
     return sdkAgentMod;
   } catch {
-    sdkAgentMod = undefined; // 없으면 다시 시도하지 않음
+    sdkAgentMod = null;
     return null;
   }
 }
@@ -67,15 +68,16 @@ function loadHealthCheck() {
 }
 
 // ── Project Manager module (lazy, graceful if absent) ─────────
-let projectMgrMod = null;
+let projectMgrMod;
+let projectMgrLoaded = false;
 function loadProjectManager() {
-  if (projectMgrMod === undefined) return null;
-  if (projectMgrMod) return projectMgrMod;
+  if (projectMgrLoaded) return projectMgrMod;
+  projectMgrLoaded = true;
   try {
     projectMgrMod = require('./project-manager.cjs');
     return projectMgrMod;
   } catch {
-    projectMgrMod = undefined;
+    projectMgrMod = null;
     return null;
   }
 }
@@ -384,7 +386,7 @@ async function startServer() {
       ));
 
       const totalTasks = tasks.length;
-      const completedTasks = tasks.filter(t => t.status === 'done').length;
+      const completedTasks = tasks.filter(t => t.status === 'completed').length;
       const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
       res.json({ project, milestones, tasks, progress });

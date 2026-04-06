@@ -342,6 +342,10 @@ tabContents.forEach(function(c) {
 var map = { project: 'projectView', timeline: 'timelineView', search: 'searchView' };
 c.classList.toggle('active', c.id === map[tab]);
 });
+var $mainEl = document.querySelector('.main');
+if ($mainEl) {
+  $mainEl.style.maxWidth = tab === 'project' ? 'none' : '760px';
+}
 if (tab === 'project') loadProject();
 if (tab === 'search') $searchInput.focus();
 }
