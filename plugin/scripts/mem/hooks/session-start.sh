@@ -10,9 +10,11 @@ PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(realpath "$0")")")}"
 if ! curl -sf "$WORKER_URL/api/health" > /dev/null 2>&1; then
   echo "[fireauto-mem] Worker 시작 중..." >&2
 
-  # node_modules 경로 설정
-  NODE_PATH="${CLAUDE_PLUGIN_DATA:-$MEM_DIR}/node_modules"
-  export NODE_PATH
+  # node_modules 경로 설정 — PLUGIN_DATA 우선, fallback으로 fireauto-mem
+  PLUGIN_DATA_DIR="${CLAUDE_PLUGIN_DATA:-$HOME/.claude/plugins/data/fireauto-imgompanda}"
+  NODE_PATH="$PLUGIN_DATA_DIR/node_modules:$MEM_DIR/node_modules"
+  DB_PATH="$PLUGIN_DATA_DIR/fireauto-mem.db"
+  export NODE_PATH DB_PATH
 
   # Worker 백그라운드 시작
   node "$PLUGIN_ROOT/scripts/mem/worker.cjs" start &

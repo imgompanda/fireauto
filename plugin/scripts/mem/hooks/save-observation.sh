@@ -64,8 +64,37 @@ case "$TOOL_NAME" in
     ;;
 esac
 
-# Worker에 전송
-echo "$INPUT" | curl -sf -X POST "$WORKER_URL/api/memories" \
+# Worker에 전송 — POST /api/memories 형식으로 변환
+SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
+PROJECT=$(basename "$(pwd)")
+
+PAYLOAD=$(echo "$INPUT" | node -e "
+  let d='';
+  process.stdin.on('data',c=>d+=c);
+  process.stdin.on('end',()=>{
+    try{
+      const j=JSON.parse(d);
+      const toolName=j.tool_name||'unknown';
+      const toolInput=typeof j.tool_input==='object'?JSON.stringify(j.tool_input):(j.tool_input||'');
+      const toolOutput=typeof j.tool_output==='object'?JSON.stringify(j.tool_output):(j.tool_output||'');
+      const filePath=j.tool_input?.file_path||j.tool_input?.command||'';
+      const payload={
+        session_id:'${SESSION_ID}',
+        project:'${PROJECT}',
+        type:'pattern',
+        title:toolName+': '+(filePath.split('/').pop()||'').slice(0,80),
+        content:toolName+' on '+filePath+'\n\nInput: '+toolInput.slice(0,500)+'\nOutput: '+toolOutput.slice(0,500),
+        tags:[toolName],
+        files_involved:filePath?[filePath]:[]
+      };
+      console.log(JSON.stringify(payload));
+    }catch{process.exit(1);}
+  });
+")
+
+[ -z "$PAYLOAD" ] && exit 0
+
+echo "$PAYLOAD" | curl -sf -X POST "$WORKER_URL/api/memories" \
   -H "Content-Type: application/json" \
   -d @- > /dev/null 2>&1
 
