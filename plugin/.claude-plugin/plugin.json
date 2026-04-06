@@ -1,7 +1,7 @@
 {
   "name": "fireauto",
-  "version": "2.1.0",
-  "description": "AI 서비스 40개를 만들면서 실전에서 검증된 자동화 플러그인 모음. 레딧 수요조사, 팀 에이전트, SEO 점검, 보안 감사, DaisyUI 디자인, MCP 메모리 시스템.",
+  "version": "2.2.0",
+  "description": "AI 개발 하네스 — 설치 한 번이면 AI가 PRD, 지식 축적, 실수 학습, 복기까지 자동으로. Karpathy LLM Knowledge Base + Claude Code 하네스 원칙.",
   "author": {
     "name": "FreAiner"
   },
