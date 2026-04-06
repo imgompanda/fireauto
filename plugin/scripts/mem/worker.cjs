@@ -66,6 +66,20 @@ function loadHealthCheck() {
   return healthCheckMod;
 }
 
+// ── Project Manager module (lazy, graceful if absent) ─────────
+let projectMgrMod = null;
+function loadProjectManager() {
+  if (projectMgrMod === undefined) return null;
+  if (projectMgrMod) return projectMgrMod;
+  try {
+    projectMgrMod = require('./project-manager.cjs');
+    return projectMgrMod;
+  } catch {
+    projectMgrMod = undefined;
+    return null;
+  }
+}
+
 // ── AI-enriched memory update ─────────────────────────────────
 function updateMemoryWithAI(db, id, aiResult) {
   try {
@@ -142,7 +156,7 @@ async function startServer() {
   // CORS
   app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     if (req.method === 'OPTIONS') return res.sendStatus(204);
     next();
@@ -311,6 +325,314 @@ async function startServer() {
       res.status(500).json({ error: err.message });
     }
   });
+
+  // ══════════════════════════════════════════════════════════
+  // ── Project Management API ─────────────────────────────
+  // ══════════════════════════════════════════════════════════
+
+  // ── Helper: rowsToObjects for raw db.exec results ──────
+  function _rows(results) {
+    if (!results.length || !results[0].values.length) return [];
+    const cols = results[0].columns;
+    return results[0].values.map((row) => {
+      const obj = {};
+      cols.forEach((c, i) => { obj[c] = row[i]; });
+      return obj;
+    });
+  }
+
+  // ── GET /api/projects ─────────────────────────────────
+  app.get('/api/projects', async (_req, res) => {
+    try {
+      const pm = loadProjectManager();
+      if (pm && pm.listProjects) {
+        return res.json({ projects: pm.listProjects(db) });
+      }
+      // fallback: direct DB query
+      const projects = _rows(db.exec(
+        'SELECT * FROM projects ORDER BY created_at_epoch DESC'
+      ));
+      res.json({ projects });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/projects error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── GET /api/projects/:id ─────────────────────────────
+  app.get('/api/projects/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
+
+      const pm = loadProjectManager();
+      if (pm && pm.getProjectDetail) {
+        const detail = pm.getProjectDetail(db, id);
+        if (!detail) return res.status(404).json({ error: 'Not found' });
+        return res.json(detail);
+      }
+      // fallback: direct DB query with milestones + tasks + progress
+      const projects = _rows(db.exec('SELECT * FROM projects WHERE id = ?', [id]));
+      if (!projects.length) return res.status(404).json({ error: 'Not found' });
+      const project = projects[0];
+
+      const milestones = _rows(db.exec(
+        'SELECT * FROM milestones WHERE project_id = ? ORDER BY sort_order ASC, id ASC', [id]
+      ));
+      const tasks = _rows(db.exec(
+        'SELECT * FROM tasks WHERE project_id = ? ORDER BY id ASC', [id]
+      ));
+
+      const totalTasks = tasks.length;
+      const completedTasks = tasks.filter(t => t.status === 'done').length;
+      const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+      res.json({ project, milestones, tasks, progress });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/projects/:id error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── POST /api/projects ────────────────────────────────
+  app.post('/api/projects', async (req, res) => {
+    try {
+      const { name, description, prd_path, milestones } = req.body;
+      if (!name) return res.status(400).json({ error: 'Missing required field: name' });
+
+      const pm = loadProjectManager();
+
+      // milestones가 있고 project-manager가 있으면 createProjectFromPRD 사용
+      if (milestones && pm && pm.createProjectFromPRD) {
+        const result = pm.createProjectFromPRD(db, { name, description, prd_path, milestones });
+        broadcast({ event: 'project_updated', data: { id: result.id, name, action: 'created' } });
+        return res.json(result);
+      }
+
+      if (pm && pm.createProject) {
+        const result = pm.createProject(db, { name, description, prd_path });
+        broadcast({ event: 'project_updated', data: { id: result.id, name, action: 'created' } });
+        return res.json(result);
+      }
+
+      // fallback: direct DB insert
+      const epoch = nowEpoch();
+      db.run(
+        `INSERT INTO projects (name, description, prd_path, status, created_at_epoch)
+         VALUES (?, ?, ?, 'active', ?)`,
+        [name, description || null, prd_path || null, epoch]
+      );
+      const result = db.exec('SELECT last_insert_rowid() as id');
+      const id = result[0].values[0][0];
+
+      broadcast({ event: 'project_updated', data: { id, name, action: 'created' } });
+      res.json({ id });
+    } catch (err) {
+      console.error('[fireauto-mem] POST /api/projects error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── PATCH /api/projects/:id ───────────────────────────
+  app.patch('/api/projects/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
+      const { status } = req.body;
+      if (!status) return res.status(400).json({ error: 'Missing required field: status' });
+
+      const pm = loadProjectManager();
+      if (pm && pm.updateProjectStatus) {
+        pm.updateProjectStatus(db, id, status);
+      } else {
+        db.run('UPDATE projects SET status = ? WHERE id = ?', [status, id]);
+        if (db.getRowsModified() === 0) return res.status(404).json({ error: 'Not found' });
+      }
+
+      broadcast({ event: 'project_updated', data: { id, status, action: 'status_changed' } });
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('[fireauto-mem] PATCH /api/projects/:id error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── GET /api/projects/:projectId/milestones ───────────
+  app.get('/api/projects/:projectId/milestones', async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId, 10);
+      if (isNaN(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
+
+      const pm = loadProjectManager();
+      if (pm && pm.listMilestones) {
+        return res.json({ milestones: pm.listMilestones(db, projectId) });
+      }
+      const milestones = _rows(db.exec(
+        'SELECT * FROM milestones WHERE project_id = ? ORDER BY sort_order ASC, id ASC',
+        [projectId]
+      ));
+      res.json({ milestones });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/projects/:projectId/milestones error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── PATCH /api/milestones/:id ─────────────────────────
+  app.patch('/api/milestones/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
+      const { status } = req.body;
+      if (!status) return res.status(400).json({ error: 'Missing required field: status' });
+
+      const pm = loadProjectManager();
+      if (pm && pm.updateMilestoneStatus) {
+        pm.updateMilestoneStatus(db, id, status);
+      } else {
+        db.run('UPDATE milestones SET status = ? WHERE id = ?', [status, id]);
+        if (db.getRowsModified() === 0) return res.status(404).json({ error: 'Not found' });
+      }
+
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('[fireauto-mem] PATCH /api/milestones/:id error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── GET /api/projects/:projectId/tasks ────────────────
+  app.get('/api/projects/:projectId/tasks', async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId, 10);
+      if (isNaN(projectId)) return res.status(400).json({ error: 'Invalid projectId' });
+
+      const pm = loadProjectManager();
+      if (pm && pm.listTasks) {
+        return res.json({ tasks: pm.listTasks(db, projectId) });
+      }
+      const tasks = _rows(db.exec(
+        'SELECT * FROM tasks WHERE project_id = ? ORDER BY id ASC',
+        [projectId]
+      ));
+      res.json({ tasks });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/projects/:projectId/tasks error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── GET /api/tasks/next ───────────────────────────────
+  app.get('/api/tasks/next', async (req, res) => {
+    try {
+      const { projectId } = req.query;
+
+      const pm = loadProjectManager();
+      if (pm && pm.getNextTask) {
+        const task = pm.getNextTask(db, projectId ? parseInt(projectId, 10) : undefined);
+        return res.json({ task: task || null });
+      }
+      // fallback: first pending task ordered by id
+      let sql = "SELECT * FROM tasks WHERE status = 'pending'";
+      const params = [];
+      if (projectId) {
+        sql += ' AND project_id = ?';
+        params.push(parseInt(projectId, 10));
+      }
+      sql += ' ORDER BY id ASC LIMIT 1';
+      const tasks = _rows(db.exec(sql, params));
+      res.json({ task: tasks[0] || null });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/tasks/next error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── PATCH /api/tasks/:id ──────────────────────────────
+  app.patch('/api/tasks/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
+      const { status, assignee } = req.body;
+      if (!status && !assignee) {
+        return res.status(400).json({ error: 'At least one of status or assignee required' });
+      }
+
+      const pm = loadProjectManager();
+      if (pm && pm.updateTask) {
+        pm.updateTask(db, id, { status, assignee });
+      } else {
+        // fallback: direct DB update
+        const sets = [];
+        const params = [];
+        if (status) { sets.push('status = ?'); params.push(status); }
+        if (assignee) { sets.push('assignee = ?'); params.push(assignee); }
+        params.push(id);
+        db.run(`UPDATE tasks SET ${sets.join(', ')} WHERE id = ?`, params);
+        if (db.getRowsModified() === 0) return res.status(404).json({ error: 'Not found' });
+      }
+
+      broadcast({ event: 'task_updated', data: { id, status, assignee, action: 'updated' } });
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('[fireauto-mem] PATCH /api/tasks/:id error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── GET /api/dashboard ────────────────────────────────
+  app.get('/api/dashboard', async (req, res) => {
+    try {
+      const { projectId } = req.query;
+
+      const pm = loadProjectManager();
+      if (pm && pm.getDashboard) {
+        const dashboard = pm.getDashboard(db, projectId ? parseInt(projectId, 10) : undefined);
+        return res.json(dashboard);
+      }
+
+      // fallback: assemble dashboard data from raw DB
+      const dashboard = { projects: [], milestones: [], tasks: [], progress: 0, relatedMemories: [] };
+
+      if (projectId) {
+        const pid = parseInt(projectId, 10);
+        const projects = _rows(db.exec('SELECT * FROM projects WHERE id = ?', [pid]));
+        dashboard.projects = projects;
+
+        const milestones = _rows(db.exec(
+          'SELECT * FROM milestones WHERE project_id = ? ORDER BY sort_order ASC, id ASC', [pid]
+        ));
+        dashboard.milestones = milestones;
+
+        const tasks = _rows(db.exec(
+          'SELECT * FROM tasks WHERE project_id = ? ORDER BY id ASC', [pid]
+        ));
+        dashboard.tasks = tasks;
+
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter(t => t.status === 'done').length;
+        dashboard.progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+        // 관련 메모리: 프로젝트 이름으로 검색
+        if (projects.length && projects[0].name) {
+          try {
+            const memories = searchMemories(db, { query: projects[0].name, limit: 10 });
+            dashboard.relatedMemories = memories;
+          } catch { /* ignore */ }
+        }
+      } else {
+        // 전체 프로젝트 요약
+        dashboard.projects = _rows(db.exec('SELECT * FROM projects ORDER BY created_at_epoch DESC'));
+      }
+
+      res.json(dashboard);
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/dashboard error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════
 
   // ── GET /api/health-check ────────────────────────────────
   app.get('/api/health-check', async (req, res) => {

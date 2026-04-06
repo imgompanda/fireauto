@@ -101,6 +101,50 @@ CREATE TABLE IF NOT EXISTS relations (
   FOREIGN KEY (target_id) REFERENCES memories(id),
   UNIQUE(source_id, target_id, relation_type)
 );
+
+-- 프로젝트 테이블 (v3)
+CREATE TABLE IF NOT EXISTS projects (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  description TEXT,
+  prd_path TEXT,
+  status TEXT DEFAULT 'active',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  created_at_epoch INTEGER NOT NULL,
+  updated_at_epoch INTEGER
+);
+
+-- 마일스톤 테이블 (v3)
+CREATE TABLE IF NOT EXISTS milestones (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  order_index INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'pending',
+  due_date TEXT,
+  completed_at_epoch INTEGER,
+  created_at_epoch INTEGER NOT NULL,
+  FOREIGN KEY (project_id) REFERENCES projects(id)
+);
+
+-- 태스크 테이블 (v3)
+CREATE TABLE IF NOT EXISTS tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  milestone_id INTEGER NOT NULL,
+  project_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'pending',
+  priority TEXT DEFAULT 'P1',
+  assignee TEXT,
+  order_index INTEGER DEFAULT 0,
+  blocked_by TEXT,
+  completed_at_epoch INTEGER,
+  created_at_epoch INTEGER NOT NULL,
+  FOREIGN KEY (milestone_id) REFERENCES milestones(id),
+  FOREIGN KEY (project_id) REFERENCES projects(id)
+);
 `;
 
 // ── v2 Migration ─────────────────────────────────────────
@@ -117,6 +161,7 @@ function migrateV2(db) {
     { table: 'memories', column: 'facts', type: "TEXT DEFAULT '[]'" },
     { table: 'memories', column: 'concepts', type: "TEXT DEFAULT '[]'" },
     { table: 'summaries', column: 'investigated', type: 'TEXT' },
+    { table: 'memories', column: 'task_id', type: 'INTEGER' },
   ];
   for (const { table, column, type } of newColumns) {
     try {
@@ -660,6 +705,294 @@ function getMemoriesForCompile(db, project) {
   }
 }
 
+// ── Project CRUD ─────────────────────────────────────────
+
+/**
+ * 프로젝트 생성
+ * @param {import('sql.js').Database} db
+ * @param {Object} params
+ * @param {string} params.name - 프로젝트 이름
+ * @param {string} [params.description] - 설명
+ * @param {string} [params.prd_path] - PRD 파일 경로
+ * @returns {number} 생성된 프로젝트 id
+ */
+function createProject(db, { name, description, prd_path }) {
+  if (!name) throw new Error('Required field: name');
+  const epoch = nowEpoch();
+  try {
+    db.run(
+      `INSERT INTO projects (name, description, prd_path, status, created_at, created_at_epoch, updated_at_epoch)
+       VALUES (?, ?, ?, 'active', ?, ?, ?)`,
+      [name, description || null, prd_path || null, formatEpoch(epoch), epoch, epoch]
+    );
+    const result = db.exec('SELECT last_insert_rowid() as id');
+    return result[0].values[0][0];
+  } catch (err) {
+    throw new Error(`Failed to create project: ${err.message}`);
+  }
+}
+
+/**
+ * ID로 프로젝트 조회
+ * @param {import('sql.js').Database} db
+ * @param {number} id
+ * @returns {Object|null}
+ */
+function getProject(db, id) {
+  try {
+    const rows = rowsToObjects(db.exec('SELECT * FROM projects WHERE id = ?', [id]));
+    return rows.length ? rows[0] : null;
+  } catch (err) {
+    throw new Error(`Failed to get project ${id}: ${err.message}`);
+  }
+}
+
+/**
+ * 프로젝트 목록 조회
+ * @param {import('sql.js').Database} db
+ * @param {{ status?: string, limit?: number }} options
+ * @returns {Object[]}
+ */
+function listProjects(db, { status, limit = 50 } = {}) {
+  try {
+    let sql = 'SELECT * FROM projects WHERE 1=1';
+    const params = [];
+    if (status) { sql += ' AND status = ?'; params.push(status); }
+    sql += ' ORDER BY created_at_epoch DESC LIMIT ?';
+    params.push(limit);
+    return rowsToObjects(db.exec(sql, params));
+  } catch (err) {
+    throw new Error(`Failed to list projects: ${err.message}`);
+  }
+}
+
+/**
+ * 프로젝트 상태 변경
+ * @param {import('sql.js').Database} db
+ * @param {number} id
+ * @param {string} status - 'active'|'completed'|'archived'
+ * @returns {boolean}
+ */
+function updateProjectStatus(db, id, status) {
+  try {
+    const epoch = nowEpoch();
+    db.run('UPDATE projects SET status = ?, updated_at_epoch = ? WHERE id = ?', [status, epoch, id]);
+    return db.getRowsModified() > 0;
+  } catch (err) {
+    throw new Error(`Failed to update project status: ${err.message}`);
+  }
+}
+
+// ── Milestone CRUD ───────────────────────────────────────
+
+/**
+ * 마일스톤 생성
+ * @param {import('sql.js').Database} db
+ * @param {Object} params
+ * @param {number} params.project_id
+ * @param {string} params.title
+ * @param {string} [params.description]
+ * @param {number} [params.order_index=0]
+ * @param {string} [params.due_date]
+ * @returns {number} 생성된 마일스톤 id
+ */
+function createMilestone(db, { project_id, title, description, order_index = 0, due_date }) {
+  if (!project_id || !title) throw new Error('Required fields: project_id, title');
+  const epoch = nowEpoch();
+  try {
+    db.run(
+      `INSERT INTO milestones (project_id, title, description, order_index, status, due_date, created_at_epoch)
+       VALUES (?, ?, ?, ?, 'pending', ?, ?)`,
+      [project_id, title, description || null, order_index, due_date || null, epoch]
+    );
+    const result = db.exec('SELECT last_insert_rowid() as id');
+    return result[0].values[0][0];
+  } catch (err) {
+    throw new Error(`Failed to create milestone: ${err.message}`);
+  }
+}
+
+/**
+ * ID로 마일스톤 조회
+ * @param {import('sql.js').Database} db
+ * @param {number} id
+ * @returns {Object|null}
+ */
+function getMilestone(db, id) {
+  try {
+    const rows = rowsToObjects(db.exec('SELECT * FROM milestones WHERE id = ?', [id]));
+    return rows.length ? rows[0] : null;
+  } catch (err) {
+    throw new Error(`Failed to get milestone ${id}: ${err.message}`);
+  }
+}
+
+/**
+ * 프로젝트의 마일스톤 목록 조회
+ * @param {import('sql.js').Database} db
+ * @param {number} projectId
+ * @param {{ status?: string }} options
+ * @returns {Object[]}
+ */
+function listMilestones(db, projectId, { status } = {}) {
+  try {
+    let sql = 'SELECT * FROM milestones WHERE project_id = ?';
+    const params = [projectId];
+    if (status) { sql += ' AND status = ?'; params.push(status); }
+    sql += ' ORDER BY order_index ASC';
+    return rowsToObjects(db.exec(sql, params));
+  } catch (err) {
+    throw new Error(`Failed to list milestones: ${err.message}`);
+  }
+}
+
+/**
+ * 마일스톤 상태 변경
+ * @param {import('sql.js').Database} db
+ * @param {number} id
+ * @param {string} status - 'pending'|'in_progress'|'completed'
+ * @returns {boolean}
+ */
+function updateMilestoneStatus(db, id, status) {
+  try {
+    const completedEpoch = status === 'completed' ? nowEpoch() : null;
+    db.run(
+      'UPDATE milestones SET status = ?, completed_at_epoch = ? WHERE id = ?',
+      [status, completedEpoch, id]
+    );
+    return db.getRowsModified() > 0;
+  } catch (err) {
+    throw new Error(`Failed to update milestone status: ${err.message}`);
+  }
+}
+
+// ── Task CRUD ────────────────────────────────────────────
+
+/**
+ * 태스크 생성
+ * @param {import('sql.js').Database} db
+ * @param {Object} params
+ * @param {number} params.milestone_id
+ * @param {number} params.project_id
+ * @param {string} params.title
+ * @param {string} [params.description]
+ * @param {string} [params.priority='P1']
+ * @param {string} [params.assignee]
+ * @param {number} [params.order_index=0]
+ * @param {string} [params.blocked_by] - 차단 태스크 ID (JSON 문자열)
+ * @returns {number} 생성된 태스크 id
+ */
+function createTask(db, { milestone_id, project_id, title, description, priority = 'P1', assignee, order_index = 0, blocked_by }) {
+  if (!milestone_id || !project_id || !title) throw new Error('Required fields: milestone_id, project_id, title');
+  const epoch = nowEpoch();
+  try {
+    db.run(
+      `INSERT INTO tasks (milestone_id, project_id, title, description, status, priority, assignee, order_index, blocked_by, created_at_epoch)
+       VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`,
+      [milestone_id, project_id, title, description || null, priority, assignee || null, order_index, blocked_by || null, epoch]
+    );
+    const result = db.exec('SELECT last_insert_rowid() as id');
+    return result[0].values[0][0];
+  } catch (err) {
+    throw new Error(`Failed to create task: ${err.message}`);
+  }
+}
+
+/**
+ * ID로 태스크 조회
+ * @param {import('sql.js').Database} db
+ * @param {number} id
+ * @returns {Object|null}
+ */
+function getTask(db, id) {
+  try {
+    const rows = rowsToObjects(db.exec('SELECT * FROM tasks WHERE id = ?', [id]));
+    return rows.length ? rows[0] : null;
+  } catch (err) {
+    throw new Error(`Failed to get task ${id}: ${err.message}`);
+  }
+}
+
+/**
+ * 태스크 목록 조회 (마일스톤 또는 프로젝트 기준)
+ * @param {import('sql.js').Database} db
+ * @param {{ milestone_id?: number, project_id?: number, status?: string }} options
+ * @returns {Object[]}
+ */
+function listTasks(db, { milestone_id, project_id, status } = {}) {
+  try {
+    let sql = 'SELECT * FROM tasks WHERE 1=1';
+    const params = [];
+    if (milestone_id) { sql += ' AND milestone_id = ?'; params.push(milestone_id); }
+    if (project_id) { sql += ' AND project_id = ?'; params.push(project_id); }
+    if (status) { sql += ' AND status = ?'; params.push(status); }
+    sql += ' ORDER BY order_index ASC';
+    return rowsToObjects(db.exec(sql, params));
+  } catch (err) {
+    throw new Error(`Failed to list tasks: ${err.message}`);
+  }
+}
+
+/**
+ * 태스크 상태 변경
+ * @param {import('sql.js').Database} db
+ * @param {number} id
+ * @param {string} status - 'pending'|'in_progress'|'completed'|'skipped'
+ * @returns {boolean}
+ */
+function updateTaskStatus(db, id, status) {
+  try {
+    const completedEpoch = status === 'completed' ? nowEpoch() : null;
+    db.run(
+      'UPDATE tasks SET status = ?, completed_at_epoch = ? WHERE id = ?',
+      [status, completedEpoch, id]
+    );
+    return db.getRowsModified() > 0;
+  } catch (err) {
+    throw new Error(`Failed to update task status: ${err.message}`);
+  }
+}
+
+/**
+ * 프로젝트 진행률 계산
+ * @param {import('sql.js').Database} db
+ * @param {number} projectId
+ * @returns {{ total_tasks: number, completed_tasks: number, progress_pct: number, total_milestones: number, completed_milestones: number }}
+ */
+function getProjectProgress(db, projectId) {
+  try {
+    const taskResult = db.exec(
+      `SELECT
+         COUNT(*) as total,
+         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+       FROM tasks WHERE project_id = ?`,
+      [projectId]
+    );
+    const milestoneResult = db.exec(
+      `SELECT
+         COUNT(*) as total,
+         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+       FROM milestones WHERE project_id = ?`,
+      [projectId]
+    );
+
+    const totalTasks = taskResult.length ? taskResult[0].values[0][0] : 0;
+    const completedTasks = taskResult.length ? (taskResult[0].values[0][1] || 0) : 0;
+    const totalMilestones = milestoneResult.length ? milestoneResult[0].values[0][0] : 0;
+    const completedMilestones = milestoneResult.length ? (milestoneResult[0].values[0][1] || 0) : 0;
+
+    return {
+      total_tasks: totalTasks,
+      completed_tasks: completedTasks,
+      progress_pct: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+      total_milestones: totalMilestones,
+      completed_milestones: completedMilestones,
+    };
+  } catch (err) {
+    throw new Error(`Failed to get project progress: ${err.message}`);
+  }
+}
+
 // ── Stats ─────────────────────────────────────────────────
 
 /**
@@ -754,4 +1087,18 @@ module.exports = {
   getRelations,
   getRelatedMemories,
   getMemoriesForCompile,
+  // v3 — project management
+  createProject,
+  getProject,
+  listProjects,
+  updateProjectStatus,
+  createMilestone,
+  getMilestone,
+  listMilestones,
+  updateMilestoneStatus,
+  createTask,
+  getTask,
+  listTasks,
+  updateTaskStatus,
+  getProjectProgress,
 };

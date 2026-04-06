@@ -15,7 +15,7 @@ const LOG_PREFIX = '[fireauto-mem MCP]';
 // ── Worker HTTP helper ───────────────────────────────────────
 
 /**
- * @param {'GET'|'POST'} method
+ * @param {'GET'|'POST'|'PATCH'} method
  * @param {string} path - e.g. '/api/memories?q=foo'
  * @param {object} [body]
  * @returns {Promise<any>}
@@ -270,6 +270,161 @@ async function main() {
 
         const text = result.document || result.content || JSON.stringify(result, null, 2);
         return { content: [{ type: 'text', text }] };
+      });
+    },
+  );
+
+  // ── project-status ──────────────────────────────────────
+  server.tool(
+    'project-status',
+    '현재 프로젝트 진행 상황을 보여줍니다. 마일스톤, 태스크, 진행률을 한눈에.',
+    {
+      projectId: z.number().optional().describe('프로젝트 ID (생략시 최근 활성 프로젝트)'),
+    },
+    async ({ projectId }) => {
+      return safeCall(async () => {
+        const result = await callWorker('GET', '/api/dashboard' + qs({ projectId }));
+
+        if (result.error) {
+          return { content: [{ type: 'text', text: `조회 실패: ${result.error}` }], isError: true };
+        }
+
+        const lines = [];
+
+        // 프로젝트 정보
+        if (result.projects && result.projects.length > 0) {
+          const p = result.projects[0];
+          lines.push(`## ${p.name}${p.description ? ' — ' + p.description : ''}`);
+          lines.push(`상태: ${p.status || '-'} | 진행률: ${result.progress || 0}%`);
+          lines.push('');
+        } else if (!projectId) {
+          // 전체 프로젝트 목록
+          if (result.projects && result.projects.length > 0) {
+            lines.push('## 프로젝트 목록');
+            for (const p of result.projects) {
+              lines.push(`- [${p.id}] ${p.name} (${p.status || '-'})`);
+            }
+          } else {
+            lines.push('등록된 프로젝트가 없습니다.');
+          }
+          return { content: [{ type: 'text', text: lines.join('\n') }] };
+        }
+
+        // 마일스톤
+        if (result.milestones && result.milestones.length > 0) {
+          lines.push('### 마일스톤');
+          for (const m of result.milestones) {
+            const icon = m.status === 'completed' ? '[x]' : m.status === 'active' ? '[~]' : '[ ]';
+            lines.push(`${icon} M${m.sort_order || m.id}: ${m.title} (${m.status})`);
+          }
+          lines.push('');
+        }
+
+        // 태스크
+        if (result.tasks && result.tasks.length > 0) {
+          lines.push('### 태스크');
+          for (const t of result.tasks) {
+            const icon = t.status === 'completed' || t.status === 'done' ? '[x]'
+              : t.status === 'in_progress' ? '[~]'
+              : t.status === 'blocked' ? '[!]' : '[ ]';
+            lines.push(`${icon} #${t.id}: ${t.title} (${t.status})`);
+          }
+          lines.push('');
+        }
+
+        // 관련 메모리
+        if (result.relatedMemories && result.relatedMemories.length > 0) {
+          lines.push('### 관련 메모리');
+          for (const m of result.relatedMemories.slice(0, 5)) {
+            lines.push(`- [${m.id}] ${m.title} (${m.type})`);
+          }
+        }
+
+        const text = lines.length > 0 ? lines.join('\n') : '프로젝트 데이터가 없습니다.';
+        return { content: [{ type: 'text', text }] };
+      });
+    },
+  );
+
+  // ── project-task-update ────────────────────────────────────
+  server.tool(
+    'project-task-update',
+    '태스크 상태를 변경합니다.',
+    {
+      taskId: z.number().describe('태스크 ID'),
+      status: z.enum(['pending', 'in_progress', 'blocked', 'completed']).describe('변경할 상태'),
+      note: z.string().optional().describe('상태 변경 사유'),
+    },
+    async ({ taskId, status, note }) => {
+      return safeCall(async () => {
+        const result = await callWorker('PATCH', `/api/tasks/${taskId}`, { status });
+
+        if (result.error) {
+          return { content: [{ type: 'text', text: `변경 실패: ${result.error}` }], isError: true };
+        }
+
+        let text = `태스크 #${taskId} 상태가 "${status}"(으)로 변경되었습니다.`;
+        if (note) {
+          text += `\n사유: ${note}`;
+        }
+
+        // 태스크 완료 시 자동 제안
+        if (status === 'completed') {
+          try {
+            const autoSuggest = require('./auto-suggest.cjs');
+            const nextResult = await callWorker('GET', '/api/tasks/next' + qs({ projectId: undefined }));
+            if (nextResult.task) {
+              text += `\n\n다음 태스크 제안: #${nextResult.task.id} ${nextResult.task.title}`;
+            }
+          } catch { /* auto-suggest 없어도 무방 */ }
+        }
+
+        return { content: [{ type: 'text', text }] };
+      });
+    },
+  );
+
+  // ── project-next ──────────────────────────────────────────
+  server.tool(
+    'project-next',
+    '다음에 해야 할 태스크를 제안합니다. 관련 메모리도 함께 보여줘요.',
+    {
+      projectId: z.number().optional().describe('프로젝트 ID (생략시 최근 활성 프로젝트)'),
+    },
+    async ({ projectId }) => {
+      return safeCall(async () => {
+        const result = await callWorker('GET', '/api/tasks/next' + qs({ projectId }));
+
+        if (result.error) {
+          return { content: [{ type: 'text', text: `조회 실패: ${result.error}` }], isError: true };
+        }
+
+        if (!result.task) {
+          return { content: [{ type: 'text', text: '다음 태스크가 없습니다. 모든 태스크가 완료되었거나 프로젝트가 없습니다.' }] };
+        }
+
+        const t = result.task;
+        const lines = [
+          `## 다음 태스크`,
+          `#${t.id}: ${t.title}`,
+          t.description ? `설명: ${t.description}` : null,
+          t.milestone_id ? `마일스톤: M${t.milestone_id}` : null,
+          `상태: ${t.status}`,
+        ].filter(Boolean);
+
+        // 관련 메모리 검색
+        try {
+          const memResult = await callWorker('GET', '/api/memories' + qs({ q: t.title, limit: 5 }));
+          if (memResult.memories && memResult.memories.length > 0) {
+            lines.push('');
+            lines.push('### 관련 메모리');
+            for (const m of memResult.memories) {
+              lines.push(`- [${m.id}] ${m.title} (${m.type})`);
+            }
+          }
+        } catch { /* 메모리 검색 실패해도 태스크 정보는 반환 */ }
+
+        return { content: [{ type: 'text', text: lines.join('\n') }] };
       });
     },
   );

@@ -6,170 +6,39 @@
 <title>fireauto 지식 DB</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-
-/* ── CSS Variables ── */
-:root{
-  --bg-primary:#ffffff;
-  --bg-secondary:#f5f5f7;
-  --bg-card:#ffffff;
-  --bg-hover:#f9fafb;
-  --text-primary:#1a1a2e;
-  --text-secondary:#6b7280;
-  --text-tertiary:#9ca3af;
-  --border:#e5e7eb;
-  --border-light:#f3f4f6;
-  --accent:#f97316;
-  --accent-light:#fff7ed;
-  --accent-dim:rgba(249,115,22,0.10);
-  --success:#22c55e;
-  --error:#ef4444;
-  --info:#3b82f6;
-  --shadow:0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md:0 4px 16px rgba(0,0,0,0.08);
-  --shadow-lg:0 8px 30px rgba(0,0,0,0.12);
-  --radius:12px;
-  --radius-sm:8px;
-  --radius-xs:4px;
-  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;
-  color-scheme:light dark;
-}
-
-[data-theme="dark"]{
-  --bg-primary:#0d1117;
-  --bg-secondary:#161b22;
-  --bg-card:#1c2333;
-  --bg-hover:#1c2128;
-  --text-primary:#e6edf3;
-  --text-secondary:#8b949e;
-  --text-tertiary:#6e7681;
-  --border:#30363d;
-  --border-light:#21262d;
-  --accent:#fb923c;
-  --accent-light:#1c1917;
-  --accent-dim:rgba(251,146,60,0.12);
-  --shadow:0 2px 8px rgba(0,0,0,0.4);
-  --shadow-md:0 4px 16px rgba(0,0,0,0.35);
-  --shadow-lg:0 8px 30px rgba(0,0,0,0.45);
-}
-
+:root{--bg-primary:#fff;--bg-secondary:#f5f5f7;--bg-card:#fff;--bg-hover:#f9fafb;--text-primary:#1a1a2e;--text-secondary:#6b7280;--text-tertiary:#9ca3af;--border:#e5e7eb;--border-light:#f3f4f6;--accent:#f97316;--accent-light:#fff7ed;--accent-dim:rgba(249,115,22,.1);--success:#22c55e;--error:#ef4444;--info:#3b82f6;--shadow:0 1px 2px rgba(0,0,0,.05);--shadow-md:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 8px 30px rgba(0,0,0,.12);--radius:12px;--radius-sm:8px;--radius-xs:4px;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;color-scheme:light dark}
+[data-theme="dark"]{--bg-primary:#0d1117;--bg-secondary:#161b22;--bg-card:#1c2333;--bg-hover:#1c2128;--text-primary:#e6edf3;--text-secondary:#8b949e;--text-tertiary:#6e7681;--border:#30363d;--border-light:#21262d;--accent:#fb923c;--accent-light:#1c1917;--accent-dim:rgba(251,146,60,.12);--shadow:0 2px 8px rgba(0,0,0,.4);--shadow-md:0 4px 16px rgba(0,0,0,.35);--shadow-lg:0 8px 30px rgba(0,0,0,.45)}
 html{font-size:16px}
-body{
-  font-family:var(--font);
-  background:var(--bg-primary);
-  color:var(--text-primary);
-  line-height:1.6;
-  min-height:100vh;
-  transition:background .25s,color .25s;
-}
+body{font-family:var(--font);background:var(--bg-primary);color:var(--text-primary);line-height:1.6;min-height:100vh;transition:background .25s,color .25s}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
-
-/* ── Header ── */
-.header{
-  position:sticky;top:0;z-index:100;
-  background:var(--bg-primary);
-  border-bottom:1px solid var(--border);
-  padding:12px 20px;
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-  transition:background .25s,border-color .25s;
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-}
-.header-logo{
-  font-size:1.1rem;font-weight:700;white-space:nowrap;
-  display:flex;align-items:center;gap:6px;
-}
+.header{position:sticky;top:0;z-index:100;background:var(--bg-primary);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;transition:background .25s,border-color .25s;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.header-logo{font-size:1.1rem;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .header-logo .fire{color:var(--accent)}
-.header-tabs{
-  display:flex;gap:2px;
-  background:var(--bg-secondary);
-  border-radius:var(--radius-sm);
-  padding:2px;
-}
-.header-tabs .tab-btn{
-  padding:5px 14px;border-radius:6px;border:none;
-  background:transparent;color:var(--text-secondary);
-  font-size:.8125rem;cursor:pointer;font-weight:500;
-  transition:all .2s;font-family:var(--font);
-}
-.header-tabs .tab-btn.active{
-  background:var(--bg-card);color:var(--text-primary);
-  box-shadow:var(--shadow);
-}
+.header-tabs{display:flex;gap:2px;background:var(--bg-secondary);border-radius:var(--radius-sm);padding:2px}
+.header-tabs .tab-btn{padding:5px 14px;border-radius:6px;border:none;background:transparent;color:var(--text-secondary);font-size:.8125rem;cursor:pointer;font-weight:500;transition:all .2s;font-family:var(--font)}
+.header-tabs .tab-btn.active{background:var(--bg-card);color:var(--text-primary);box-shadow:var(--shadow)}
 .header-tabs .tab-btn:hover:not(.active){color:var(--text-primary)}
 .header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
-.search-box{
-  border:1px solid var(--border);border-radius:var(--radius-sm);
-  padding:6px 12px;font-size:.875rem;
-  background:var(--bg-secondary);color:var(--text-primary);
-  width:200px;outline:none;
-  transition:border-color .2s,width .2s,box-shadow .2s;
-  font-family:var(--font);
-}
+.search-box{border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;font-size:.875rem;background:var(--bg-secondary);color:var(--text-primary);width:200px;outline:none;transition:border-color .2s,width .2s,box-shadow .2s;font-family:var(--font)}
 .search-box:focus{border-color:var(--accent);width:260px;box-shadow:0 0 0 3px var(--accent-dim)}
-.filter-select{
-  border:1px solid var(--border);border-radius:var(--radius-sm);
-  padding:6px 8px;font-size:.875rem;
-  background:var(--bg-secondary);color:var(--text-primary);
-  outline:none;cursor:pointer;font-family:var(--font);
-}
-.icon-btn{
-  width:36px;height:36px;border-radius:var(--radius-sm);
-  border:1px solid var(--border);background:var(--bg-secondary);
-  cursor:pointer;font-size:1.1rem;
-  display:flex;align-items:center;justify-content:center;
-  transition:background .2s,border-color .2s;
-}
+.filter-select{border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 8px;font-size:.875rem;background:var(--bg-secondary);color:var(--text-primary);outline:none;cursor:pointer;font-family:var(--font)}
+.icon-btn{width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-secondary);cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:background .2s,border-color .2s}
 .icon-btn:hover{border-color:var(--accent);background:var(--accent-dim)}
-
-/* ── Stats bar ── */
-.stats-bar{
-  padding:8px 20px;background:var(--bg-secondary);
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:16px;
-  font-size:.8125rem;color:var(--text-secondary);
-  transition:background .25s,border-color .25s;
-  flex-wrap:wrap;
-}
+.stats-bar{padding:8px 20px;background:var(--bg-secondary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;font-size:.8125rem;color:var(--text-secondary);transition:background .25s,border-color .25s;flex-wrap:wrap}
 .stats-bar .stat{display:flex;align-items:center;gap:4px}
 .stats-bar .stat strong{color:var(--text-primary);font-weight:600}
-.connection-dot{
-  width:8px;height:8px;border-radius:50%;
-  display:inline-block;transition:background .3s;
-}
+.connection-dot{width:8px;height:8px;border-radius:50%;display:inline-block;transition:background .3s}
 .connection-dot.connected{background:var(--success)}
 .connection-dot.disconnected{background:var(--error);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* ── Main ── */
 .main{max-width:760px;margin:0 auto;padding:20px 16px 80px}
-
-/* ── Tab content ── */
 .tab-content{display:none}
 .tab-content.active{display:block}
-
-/* ── Feed ── */
 .feed{display:flex;flex-direction:column;gap:0}
-
-/* ── Date divider ── */
-.date-divider{
-  display:flex;align-items:center;gap:12px;
-  padding:16px 0 8px;font-size:.8125rem;
-  color:var(--text-tertiary);font-weight:500;
-}
+.date-divider{display:flex;align-items:center;gap:12px;padding:16px 0 8px;font-size:.8125rem;color:var(--text-tertiary);font-weight:500}
 .date-divider::after{content:'';flex:1;height:1px;background:var(--border)}
-
-/* ── Card ── */
-.card{
-  background:var(--bg-card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:20px;
-  margin-bottom:16px;
-  border-left:4px solid var(--card-accent,var(--border));
-  transition:all 0.2s;
-  box-shadow:var(--shadow);
-  animation:cardIn .25s ease-out;
-}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--card-accent,var(--border));transition:all .2s;box-shadow:var(--shadow);animation:cardIn .25s ease-out}
 .card:hover{box-shadow:var(--shadow-md)}
 .card.highlight{animation:highlightPulse 1.5s ease}
 @keyframes highlightPulse{
@@ -177,257 +46,95 @@ a:hover{text-decoration:underline}
   50%{box-shadow:0 0 0 3px var(--accent)}
 }
 @keyframes cardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-/* ── Card header row ── */
-.card-header{
-  display:flex;align-items:center;gap:8px;
-  margin-bottom:6px;flex-wrap:wrap;
-}
+.card-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
 .card-header-left{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
 .card-header-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
-
-/* ── Type badge ── */
-.type-badge{
-  display:inline-block;
-  padding:2px 10px;
-  border-radius:4px;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:0.5px;
-  text-transform:uppercase;
-  white-space:nowrap;
-}
-
-/* ── Project label ── */
-.project-label{
-  font-size:.75rem;color:var(--text-tertiary);
-  font-weight:500;white-space:nowrap;
-}
-
-/* ── Toggle buttons ── */
+.type-badge{display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
+.project-label{font-size:.75rem;color:var(--text-tertiary);font-weight:500;white-space:nowrap}
 .toggle-group{display:flex;gap:4px}
-.toggle-btn{
-  font-size:.6875rem;
-  padding:2px 8px;
-  border-radius:var(--radius-xs);
-  border:1px solid var(--border);
-  background:transparent;
-  color:var(--text-tertiary);
-  cursor:pointer;
-  font-family:var(--font);
-  transition:all .15s;
-  font-weight:500;
-}
-.toggle-btn.active{
-  background:var(--accent-dim);
-  color:var(--accent);
-  border-color:var(--accent);
-}
+.toggle-btn{font-size:.6875rem;padding:2px 8px;border-radius:var(--radius-xs);border:1px solid var(--border);background:transparent;color:var(--text-tertiary);cursor:pointer;font-family:var(--font);transition:all .15s;font-weight:500}
+.toggle-btn.active{background:var(--accent-dim);color:var(--accent);border-color:var(--accent)}
 .toggle-btn:hover:not(.active){color:var(--text-secondary);border-color:var(--text-secondary)}
-
-/* ── Card body ── */
-.card-title{
-  font-size:.9375rem;font-weight:600;
-  line-height:1.4;margin-bottom:2px;
-}
-.card-subtitle{
-  font-size:.8125rem;color:var(--text-secondary);
-  line-height:1.5;margin-bottom:4px;
-}
-.card-content{
-  font-size:.8125rem;color:var(--text-secondary);
-  line-height:1.7;margin-top:2px;
-}
-
-/* ── Facts section ── */
-.facts-section{
-  margin-top:10px;display:none;
-  padding:10px 12px;
-  background:var(--bg-secondary);
-  border-radius:var(--radius-sm);
-}
+.card-title{font-size:.9375rem;font-weight:600;line-height:1.4;margin-bottom:2px}
+.card-subtitle{font-size:.8125rem;color:var(--text-secondary);line-height:1.5;margin-bottom:4px}
+.card-content{font-size:.8125rem;color:var(--text-secondary);line-height:1.7;margin-top:2px}
+.facts-section{margin-top:10px;display:none;padding:10px 12px;background:var(--bg-secondary);border-radius:var(--radius-sm)}
 .facts-section.open{display:block}
-.fact-item{
-  font-size:.8125rem;color:var(--text-secondary);
-  padding:3px 0;display:flex;align-items:flex-start;gap:6px;
-}
+.fact-item{font-size:.8125rem;color:var(--text-secondary);padding:3px 0;display:flex;align-items:flex-start;gap:6px}
 .fact-item::before{content:'\2022';color:var(--accent);font-weight:700;flex-shrink:0}
-
-/* ── Narrative section ── */
-.narrative-section{
-  margin-top:10px;display:none;
-  padding:10px 12px;
-  background:var(--bg-secondary);
-  border-radius:var(--radius-sm);
-  font-size:.8125rem;color:var(--text-secondary);
-  line-height:1.7;
-}
+.narrative-section{margin-top:10px;display:none;padding:10px 12px;background:var(--bg-secondary);border-radius:var(--radius-sm);font-size:.8125rem;color:var(--text-secondary);line-height:1.7}
 .narrative-section.open{display:block}
-
-/* ── Meta row (files, tags) ── */
-.card-meta{
-  display:flex;flex-wrap:wrap;gap:6px;
-  margin-top:10px;font-size:.75rem;
-}
-.file-tag{
-  color:var(--text-secondary);
-  background:var(--bg-secondary);
-  padding:2px 8px;border-radius:4px;
-  display:inline-flex;align-items:center;gap:3px;
-}
-.tag{
-  color:var(--accent);
-  background:var(--accent-dim);
-  padding:2px 8px;border-radius:4px;
-}
-
-/* ── Backlinks ── */
-.backlinks{
-  margin-top:12px;
-  padding-top:12px;
-  border-top:1px dashed var(--border);
-}
-.backlinks-title{
-  font-size:11px;
-  color:var(--text-tertiary);
-  margin-bottom:6px;
-  font-weight:500;
-}
-.backlink{
-  display:inline-block;
-  padding:2px 8px;
-  margin:2px 4px 2px 0;
-  background:var(--accent-dim);
-  color:var(--accent);
-  border-radius:4px;
-  font-size:12px;
-  cursor:pointer;
-  text-decoration:none;
-  border:none;
-  font-family:var(--font);
-  transition:background .15s;
-}
+.card-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;font-size:.75rem}
+.file-tag{color:var(--text-secondary);background:var(--bg-secondary);padding:2px 8px;border-radius:4px;display:inline-flex;align-items:center;gap:3px}
+.tag{color:var(--accent);background:var(--accent-dim);padding:2px 8px;border-radius:4px}
+.backlinks{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
+.backlinks-title{font-size:11px;color:var(--text-tertiary);margin-bottom:6px;font-weight:500}
+.backlink{display:inline-block;padding:2px 8px;margin:2px 4px 2px 0;background:var(--accent-dim);color:var(--accent);border-radius:4px;font-size:12px;cursor:pointer;text-decoration:none;border:none;font-family:var(--font);transition:background .15s}
 .backlink:hover{text-decoration:underline;background:var(--accent-light)}
-
-/* ── Card footer ── */
-.card-footer{
-  display:flex;align-items:center;gap:8px;
-  margin-top:12px;
-  font-size:.6875rem;
-  color:var(--text-tertiary);
-}
+.card-footer{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:.6875rem;color:var(--text-tertiary)}
 .card-footer .card-id{font-weight:600}
-
-/* ── Summary card ── */
-.summary-card{
-  background:var(--bg-secondary);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:16px 20px;
-  margin-bottom:16px;
-  max-height:200px;
-  overflow:hidden;
-  position:relative;
-  cursor:pointer;
-  transition:max-height 0.3s ease;
-  border-left:4px solid var(--info);
-  animation:cardIn .25s ease-out;
-}
+.summary-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px;max-height:200px;overflow:hidden;position:relative;cursor:pointer;transition:max-height .3s ease;border-left:4px solid var(--info);animation:cardIn .25s ease-out}
 .summary-card:hover{box-shadow:var(--shadow-md)}
-.summary-label{
-  font-size:11px;
-  color:var(--text-tertiary);
-  text-transform:uppercase;
-  letter-spacing:0.5px;
-  font-weight:600;
-  margin-bottom:10px;
-  display:flex;align-items:center;gap:6px;
-}
-.summary-fields{
-  display:grid;grid-template-columns:1fr;gap:8px;
-}
-.summary-field{
-  padding:6px 0;
-}
-.summary-field .sf-label{
-  font-size:11px;color:var(--text-tertiary);
-  font-weight:500;margin-bottom:1px;display:block;
-}
-.summary-field .sf-value{
-  font-size:.8125rem;color:var(--text-primary);line-height:1.5;
-}
-.summary-footer{
-  margin-top:10px;font-size:.6875rem;color:var(--text-tertiary);
-}
-
-/* ── Search highlight ── */
+.summary-label{font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.summary-fields{display:grid;grid-template-columns:1fr;gap:8px}
+.summary-field{padding:6px 0}
+.summary-field .sf-label{font-size:11px;color:var(--text-tertiary);font-weight:500;margin-bottom:1px;display:block}
+.summary-field .sf-value{font-size:.8125rem;color:var(--text-primary);line-height:1.5}
+.summary-footer{margin-top:10px;font-size:.6875rem;color:var(--text-tertiary)}
+.empty-project{text-align:center;padding:60px 20px;color:var(--text-secondary)}
+.empty-project .ep-icon{font-size:2.5rem;margin-bottom:12px}
+.empty-project .ep-title{font-size:1.125rem;font-weight:600;color:var(--text-primary);margin-bottom:4px}
+.empty-project .ep-desc{font-size:.875rem}
+.project-dashboard{max-width:800px;margin:0 auto}
+.project-header{margin-bottom:16px}
+.project-name{font-size:1.25rem;font-weight:700;margin-bottom:4px}
+.project-meta{display:flex;gap:10px;font-size:.8125rem;color:var(--text-secondary)}
+.project-status{display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:var(--accent-dim);color:var(--accent)}
+.progress-section{margin:16px 0}
+.progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
+.progress-text{font-size:13px;color:var(--text-secondary);margin-top:4px;display:block}
+.milestone-list{display:flex;flex-direction:column;gap:0}
+.milestone-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;border-left:4px solid var(--border);box-shadow:var(--shadow)}
+.milestone-card.completed{border-left-color:var(--success);opacity:.7}
+.milestone-card.in_progress{border-left-color:var(--accent)}
+.milestone-card.pending{border-left-color:var(--text-tertiary)}
+.milestone-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.milestone-icon{font-size:1rem}
+.milestone-title{font-weight:600;font-size:.9375rem;flex:1}
+.milestone-progress{font-size:.75rem;color:var(--text-secondary);background:var(--bg-secondary);padding:2px 8px;border-radius:4px}
+.milestone-tasks{display:flex;flex-direction:column;gap:0}
+.task-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:.8125rem}
+.task-item:last-child{border-bottom:none}
+.task-item.completed{opacity:.6;text-decoration:line-through}
+.task-check{flex-shrink:0}
+.task-title{flex:1;min-width:0}
+.task-priority{font-size:11px;padding:1px 6px;border-radius:3px;background:var(--accent-dim);color:var(--accent);flex-shrink:0}
+.task-memory{width:100%;font-size:12px;color:var(--text-tertiary);padding:4px 0 0 28px}
 .search-hl{background:var(--accent-dim);border-radius:2px;padding:0 2px}
-
-/* ── Graph view ── */
 #graphView{position:relative}
-#graph-canvas{
-  width:100%;height:500px;
-  background:var(--bg-secondary);
-  border-radius:var(--radius);
-  border:1px solid var(--border);
-  cursor:grab;display:block;
-}
+#graph-canvas{width:100%;height:500px;background:var(--bg-secondary);border-radius:var(--radius);border:1px solid var(--border);cursor:grab;display:block}
 #graph-canvas:active{cursor:grabbing}
-.fullscreen-btn{
-  position:absolute;top:8px;right:8px;
-  background:var(--bg-card);border:1px solid var(--border);
-  border-radius:var(--radius-xs);padding:4px 10px;
-  cursor:pointer;font-size:15px;z-index:5;
-  color:var(--text-primary);transition:border-color .2s;
-}
+.fullscreen-btn{position:absolute;top:8px;right:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-xs);padding:4px 10px;cursor:pointer;font-size:15px;z-index:5;color:var(--text-primary);transition:border-color .2s}
 .fullscreen-btn:hover{border-color:var(--accent)}
-#graphView.fullscreen{
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  z-index:9999;background:var(--bg-primary);
-  padding:0;margin:0;
-}
+#graphView.fullscreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:var(--bg-primary);padding:0;margin:0}
 #graphView.fullscreen #graph-canvas{height:100vh !important}
-.graph-tooltip{
-  position:absolute;padding:8px 12px;
-  background:var(--bg-card);border:1px solid var(--border);
-  border-radius:var(--radius-sm);box-shadow:var(--shadow-md);
-  font-size:.8125rem;pointer-events:none;z-index:10;
-  max-width:260px;display:none;
-}
+.graph-tooltip{position:absolute;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);font-size:.8125rem;pointer-events:none;z-index:10;max-width:260px;display:none}
 .graph-tooltip .gt-title{font-weight:600;margin-bottom:2px}
 .graph-tooltip .gt-type{font-size:.75rem;color:var(--text-secondary)}
-.graph-legend{
-  display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;
-  font-size:.75rem;color:var(--text-secondary);
-}
+.graph-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:.75rem;color:var(--text-secondary)}
 .graph-legend-item{display:flex;align-items:center;gap:4px}
 .graph-legend-dot{width:10px;height:10px;border-radius:50%}
-
-/* ── Load more ── */
 .load-more{text-align:center;padding:16px}
-.load-more-btn{
-  background:var(--bg-secondary);color:var(--text-primary);
-  border:1px solid var(--border);border-radius:var(--radius-sm);
-  padding:8px 24px;font-size:.875rem;cursor:pointer;
-  transition:background .2s,border-color .2s;font-family:var(--font);
-}
+.load-more-btn{background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 24px;font-size:.875rem;cursor:pointer;transition:background .2s,border-color .2s;font-family:var(--font)}
 .load-more-btn:hover{border-color:var(--accent);background:var(--accent-dim)}
-
-/* ── Empty / loading states ── */
 .empty-state{text-align:center;padding:60px 20px;color:var(--text-secondary)}
 .empty-state .es-icon{font-size:2.5rem;margin-bottom:12px}
 .empty-state .es-title{font-size:1.125rem;font-weight:600;color:var(--text-primary);margin-bottom:4px}
 .empty-state .es-desc{font-size:.875rem}
 .loading{text-align:center;padding:40px;color:var(--text-secondary);font-size:.875rem}
-.spinner{
-  display:inline-block;width:20px;height:20px;
-  border:2px solid var(--border);border-top-color:var(--accent);
-  border-radius:50%;animation:spin .6s linear infinite;
-  margin-right:8px;vertical-align:middle;
-}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:8px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── Responsive ── */
 @media(max-width:600px){
   .header{padding:10px 12px;gap:8px}
   .search-box{width:140px}
@@ -449,11 +156,11 @@ a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
-
 <header class="header" role="banner">
   <div class="header-logo"><span class="fire" aria-hidden="true">&#x1F525;</span> fireauto 지식 DB</div>
   <nav class="header-tabs" role="tablist" aria-label="뷰 전환">
-    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="timelineView" id="tabTimeline" data-tab="timeline">타임라인</button>
+    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="projectView" id="tabProject" data-tab="project">프로젝트</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="timelineView" id="tabTimeline" data-tab="timeline">타임라인</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="graphView" id="tabGraph" data-tab="graph">그래프</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="searchView" id="tabSearch" data-tab="search">검색</button>
   </nav>
@@ -465,22 +172,28 @@ a:hover{text-decoration:underline}
     <button class="icon-btn" id="themeToggle" aria-label="테마 전환" title="테마 전환"></button>
   </div>
 </header>
-
 <div class="stats-bar" role="status" aria-live="polite">
   <span class="stat">메모리 <strong id="statMemories">0</strong>개</span>
   <span class="stat">관계 <strong id="statRelations">0</strong>개</span>
   <span class="stat"><span class="connection-dot disconnected" id="connDot"></span> <span id="connLabel">연결 중...</span></span>
 </div>
-
 <main class="main">
+  <!-- Project View -->
+  <section class="tab-content active" id="projectView" role="tabpanel" aria-labelledby="tabProject">
+    <div class="empty-project" id="emptyProject">
+      <div class="ep-icon">&#x1F4CB;</div>
+      <div class="ep-title">프로젝트가 없어요</div>
+      <div class="ep-desc">/project 또는 /planner로 프로젝트를 시작하세요</div>
+    </div>
+    <div class="project-dashboard" id="projectDashboard" style="display:none"></div>
+  </section>
   <!-- Timeline View -->
-  <section class="tab-content active" id="timelineView" role="tabpanel" aria-labelledby="tabTimeline">
+  <section class="tab-content" id="timelineView" role="tabpanel" aria-labelledby="tabTimeline">
     <div id="feed" class="feed" role="feed" aria-label="지식 피드"></div>
     <div class="load-more" id="loadMoreWrap" style="display:none">
       <button class="load-more-btn" id="loadMoreBtn">더 보기</button>
     </div>
   </section>
-
   <!-- Graph View -->
   <section class="tab-content" id="graphView" role="tabpanel" aria-labelledby="tabGraph">
     <button id="graphFullscreen" class="fullscreen-btn" title="전체 화면">&#x26F6;</button>
@@ -491,50 +204,42 @@ a:hover{text-decoration:underline}
     </div>
     <div class="graph-legend" id="graphLegend"></div>
   </section>
-
   <!-- Search View -->
   <section class="tab-content" id="searchView" role="tabpanel" aria-labelledby="tabSearch">
     <div id="searchFeed" class="feed" role="feed" aria-label="검색 결과"></div>
   </section>
 </main>
-
 <script>
 (function(){
 'use strict';
-
 var API = '';
-
 var TYPE_CONFIG = {
-  decision: { label: 'DECISION', ko: '결정', color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' },
-  bugfix:   { label: 'BUGFIX', ko: '버그수정', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
-  feature:  { label: 'FEATURE', ko: '기능', color: '#22c55e', bg: 'rgba(34,197,94,0.15)' },
-  pattern:  { label: 'PATTERN', ko: '패턴', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
-  gotcha:   { label: 'GOTCHA', ko: '주의', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
-  refactor: { label: 'REFACTOR', ko: '리팩토링', color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
+decision: { label: 'DECISION', ko: '결정', color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' },
+bugfix:   { label: 'BUGFIX', ko: '버그수정', color: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
+feature:  { label: 'FEATURE', ko: '기능', color: '#22c55e', bg: 'rgba(34,197,94,0.15)' },
+pattern:  { label: 'PATTERN', ko: '패턴', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
+gotcha:   { label: 'GOTCHA', ko: '주의', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
+refactor: { label: 'REFACTOR', ko: '리팩토링', color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
 };
-
 var RELATION_CONFIG = {
-  related:   { label: '관련', color: '#8b5cf6', dash: [] },
-  caused_by: { label: '원인', color: '#ef4444', dash: [6, 3] },
-  led_to:    { label: '결과', color: '#22c55e', dash: [4, 4] },
-  same_file: { label: '같은 파일', color: '#f59e0b', dash: [2, 2] },
-  same_tag:  { label: '같은 태그', color: '#3b82f6', dash: [8, 4] },
+related:   { label: '관련', color: '#8b5cf6', dash: [] },
+caused_by: { label: '원인', color: '#ef4444', dash: [6, 3] },
+led_to:    { label: '결과', color: '#22c55e', dash: [4, 4] },
+same_file: { label: '같은 파일', color: '#f59e0b', dash: [2, 2] },
+same_tag:  { label: '같은 태그', color: '#3b82f6', dash: [8, 4] },
 };
-
 var state = {
-  memories: [],
-  summaries: [],
-  projects: [],
-  currentProject: '',
-  searchQuery: '',
-  isConnected: false,
-  stats: { total_memories: 0, total_relations: 0 },
-  loading: false,
-  activeTab: 'timeline',
-  graphData: null,
+memories: [],
+summaries: [],
+projects: [],
+currentProject: '',
+searchQuery: '',
+isConnected: false,
+stats: { total_memories: 0, total_relations: 0 },
+loading: false,
+activeTab: 'project',
+graphData: null,
 };
-
-/* ── DOM refs ── */
 var $feed = document.getElementById('feed');
 var $searchFeed = document.getElementById('searchFeed');
 var $searchInput = document.getElementById('searchInput');
@@ -549,970 +254,864 @@ var $loadMoreBtn = document.getElementById('loadMoreBtn');
 var $canvas = document.getElementById('graph-canvas');
 var $tooltip = document.getElementById('graphTooltip');
 var $legend = document.getElementById('graphLegend');
+var $emptyProject = document.getElementById('emptyProject');
+var $projectDashboard = document.getElementById('projectDashboard');
 var tabBtns = document.querySelectorAll('.tab-btn');
 var tabContents = document.querySelectorAll('.tab-content');
-
-/* ── Helpers ── */
 function el(tag, cls, txt) {
-  var e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (txt !== undefined) e.textContent = txt;
-  return e;
+var e = document.createElement(tag);
+if (cls) e.className = cls;
+if (txt !== undefined) e.textContent = txt;
+return e;
 }
 function pad(n) { return n < 10 ? '0' + n : '' + n; }
 function formatDate(ep) {
-  if (!ep) return '';
-  var d = new Date(ep);
-  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+if (!ep) return '';
+var d = new Date(ep);
+return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 }
 function formatDateTime(ep) {
-  if (!ep) return '';
-  var d = new Date(ep);
-  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+if (!ep) return '';
+var d = new Date(ep);
+return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 function parseJson(v, fb) {
-  if (Array.isArray(v)) return v;
-  if (typeof v === 'string') { try { return JSON.parse(v); } catch (e) {} }
-  return fb || [];
+if (Array.isArray(v)) return v;
+if (typeof v === 'string') { try { return JSON.parse(v); } catch (e) {} }
+return fb || [];
 }
 function clearEl(p) { while (p.firstChild) p.removeChild(p.firstChild); }
-
 function cleanTitle(title) {
-  if (!title) return '제목 없음';
-  var cleaned = title.replace(/^Tool:\s*\w+\s*Input:\s*/i, '');
-  cleaned = cleaned.replace(/^(Edit|Bash|Write|Read|Glob|Grep):\s*/i, '');
-  if (cleaned.startsWith('{')) {
-    try {
-      var j = JSON.parse(cleaned);
-      if (j.file_path) return j.file_path.split('/').pop();
-      if (j.command) return j.command.slice(0, 80);
-    } catch(e) {}
-    return cleaned.slice(0, 80);
-  }
-  return cleaned.slice(0, 120);
+if (!title) return '제목 없음';
+var cleaned = title.replace(/^Tool:\s*\w+\s*Input:\s*/i, '');
+cleaned = cleaned.replace(/^(Edit|Bash|Write|Read|Glob|Grep):\s*/i, '');
+if (cleaned.startsWith('{')) {
+try {
+var j = JSON.parse(cleaned);
+if (j.file_path) return j.file_path.split('/').pop();
+if (j.command) return j.command.slice(0, 80);
+} catch(e) {}
+return cleaned.slice(0, 80);
 }
-
+return cleaned.slice(0, 120);
+}
 function highlightText(text, query) {
-  if (!query || !text) return document.createTextNode(text || '');
-  var frag = document.createDocumentFragment();
-  var lower = text.toLowerCase();
-  var qLower = query.toLowerCase();
-  var idx = 0;
-  while (idx < text.length) {
-    var pos = lower.indexOf(qLower, idx);
-    if (pos === -1) { frag.appendChild(document.createTextNode(text.substring(idx))); break; }
-    if (pos > idx) frag.appendChild(document.createTextNode(text.substring(idx, pos)));
-    var mark = el('span', 'search-hl', text.substring(pos, pos + query.length));
-    frag.appendChild(mark);
-    idx = pos + query.length;
-  }
-  return frag;
+if (!query || !text) return document.createTextNode(text || '');
+var frag = document.createDocumentFragment();
+var lower = text.toLowerCase();
+var qLower = query.toLowerCase();
+var idx = 0;
+while (idx < text.length) {
+var pos = lower.indexOf(qLower, idx);
+if (pos === -1) { frag.appendChild(document.createTextNode(text.substring(idx))); break; }
+if (pos > idx) frag.appendChild(document.createTextNode(text.substring(idx, pos)));
+var mark = el('span', 'search-hl', text.substring(pos, pos + query.length));
+frag.appendChild(mark);
+idx = pos + query.length;
 }
-
-/* ── Theme ── */
+return frag;
+}
 function detectTheme() {
-  var s = localStorage.getItem('fireauto-theme');
-  if (s) setTheme(s);
-  else if (window.matchMedia('(prefers-color-scheme:dark)').matches) setTheme('dark');
-  else setTheme('light');
+var s = localStorage.getItem('fireauto-theme');
+if (s) setTheme(s);
+else if (window.matchMedia('(prefers-color-scheme:dark)').matches) setTheme('dark');
+else setTheme('light');
 }
 function setTheme(t) {
-  document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem('fireauto-theme', t);
-  $themeToggle.textContent = t === 'dark' ? '☀️' : '🌙';
+document.documentElement.setAttribute('data-theme', t);
+localStorage.setItem('fireauto-theme', t);
+$themeToggle.textContent = t === 'dark' ? '☀️' : '🌙';
 }
 function toggleTheme() {
-  var c = document.documentElement.getAttribute('data-theme');
-  setTheme(c === 'dark' ? 'light' : 'dark');
+var c = document.documentElement.getAttribute('data-theme');
+setTheme(c === 'dark' ? 'light' : 'dark');
 }
-
-/* ── Tabs ── */
 function switchTab(tab) {
-  state.activeTab = tab;
-  tabBtns.forEach(function(b) {
-    var active = b.getAttribute('data-tab') === tab;
-    b.classList.toggle('active', active);
-    b.setAttribute('aria-selected', active ? 'true' : 'false');
-  });
-  tabContents.forEach(function(c) {
-    var map = { timeline: 'timelineView', graph: 'graphView', search: 'searchView' };
-    c.classList.toggle('active', c.id === map[tab]);
-  });
-  if (tab === 'graph') loadGraph();
-  if (tab === 'search') $searchInput.focus();
+state.activeTab = tab;
+tabBtns.forEach(function(b) {
+var active = b.getAttribute('data-tab') === tab;
+b.classList.toggle('active', active);
+b.setAttribute('aria-selected', active ? 'true' : 'false');
+});
+tabContents.forEach(function(c) {
+var map = { project: 'projectView', timeline: 'timelineView', graph: 'graphView', search: 'searchView' };
+c.classList.toggle('active', c.id === map[tab]);
+});
+if (tab === 'project') loadProject();
+if (tab === 'graph') loadGraph();
+if (tab === 'search') $searchInput.focus();
 }
-
-/* ── SSE ── */
 var eventSource = null;
 function connectSSE() {
-  if (eventSource) { try { eventSource.close(); } catch (e) {} }
-  eventSource = new EventSource(API + '/stream');
-  eventSource.onopen = function() { state.isConnected = true; updateConnUI(); };
-  eventSource.onerror = function() {
-    state.isConnected = false; updateConnUI();
-    try { eventSource.close(); } catch (e) {}
-    eventSource = null;
-    setTimeout(connectSSE, 3000);
-  };
-  eventSource.onmessage = function(e) {
-    try {
-      var msg = JSON.parse(e.data);
-      var evt = msg.event || msg.type;
-      var data = msg.data || msg;
-      if (evt === 'initial_load') {
-        if (data.projects) { state.projects = data.projects; renderProjectFilter(); }
-        if (data.stats) { state.stats = data.stats; renderStats(); }
-      } else if (evt === 'new_memory' || evt === 'new_summary' || evt === 'memory_enriched') {
-        loadMemories(); loadStats();
-      }
-    } catch (err) {}
-  };
+if (eventSource) { try { eventSource.close(); } catch (e) {} }
+eventSource = new EventSource(API + '/stream');
+eventSource.onopen = function() { state.isConnected = true; updateConnUI(); };
+eventSource.onerror = function() {
+state.isConnected = false; updateConnUI();
+try { eventSource.close(); } catch (e) {}
+eventSource = null;
+setTimeout(connectSSE, 3000);
+};
+eventSource.onmessage = function(e) {
+try {
+var msg = JSON.parse(e.data);
+var evt = msg.event || msg.type;
+var data = msg.data || msg;
+if (evt === 'initial_load') {
+if (data.projects) { state.projects = data.projects; renderProjectFilter(); }
+if (data.stats) { state.stats = data.stats; renderStats(); }
+} else if (evt === 'new_memory' || evt === 'new_summary' || evt === 'memory_enriched') {
+loadMemories(); loadStats();
+} else if (evt === 'project_updated' || evt === 'task_updated') {
+loadProject();
+}
+} catch (err) {}
+};
 }
 function updateConnUI() {
-  $connDot.className = state.isConnected ? 'connection-dot connected' : 'connection-dot disconnected';
-  $connLabel.textContent = state.isConnected ? '연결됨' : '연결 끊김';
+$connDot.className = state.isConnected ? 'connection-dot connected' : 'connection-dot disconnected';
+$connLabel.textContent = state.isConnected ? '연결됨' : '연결 끊김';
 }
-
-/* ── API ── */
 function fetchJSON(url) {
-  return fetch(API + url).then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  });
+return fetch(API + url).then(function(r) {
+if (!r.ok) throw new Error('HTTP ' + r.status);
+return r.json();
+});
 }
-
 function loadMemories() {
-  if (state.loading) return;
-  state.loading = true;
-  var mp = '?limit=200';
-  var sp = '?limit=50';
-  if (state.currentProject) {
-    var enc = encodeURIComponent(state.currentProject);
-    mp += '&project=' + enc;
-    sp += '&project=' + enc;
-  }
-  Promise.all([
-    fetchJSON('/api/memories' + mp),
-    fetchJSON('/api/summaries' + sp)
-  ]).then(function(res) {
-    state.memories = res[0].memories || [];
-    state.summaries = res[1].summaries || [];
-    renderFeed();
-  }).catch(function() {
-    showError();
-  }).finally(function() {
-    state.loading = false;
-  });
+if (state.loading) return;
+state.loading = true;
+var mp = '?limit=200';
+var sp = '?limit=50';
+if (state.currentProject) {
+var enc = encodeURIComponent(state.currentProject);
+mp += '&project=' + enc;
+sp += '&project=' + enc;
 }
-
+Promise.all([
+fetchJSON('/api/memories' + mp),
+fetchJSON('/api/summaries' + sp)
+]).then(function(res) {
+state.memories = res[0].memories || [];
+state.summaries = res[1].summaries || [];
+renderFeed();
+}).catch(function() {
+showError();
+}).finally(function() {
+state.loading = false;
+});
+}
 function loadStats() {
-  fetchJSON('/api/stats').then(function(d) {
-    state.stats = d; renderStats();
-  }).catch(function() {});
+fetchJSON('/api/stats').then(function(d) {
+state.stats = d; renderStats();
+}).catch(function() {});
 }
-
 function doSearch(query) {
-  if (!query.trim()) {
-    if (state.activeTab === 'search') switchTab('timeline');
-    return;
-  }
-  state.loading = true;
-  if (state.activeTab !== 'search') switchTab('search');
-  var p = '?q=' + encodeURIComponent(query) + '&limit=100';
-  if (state.currentProject) p += '&project=' + encodeURIComponent(state.currentProject);
-  fetchJSON('/api/memories' + p).then(function(d) {
-    var memories = d.memories || [];
-    renderSearchResults(memories);
-  }).catch(function() {
-    clearEl($searchFeed);
-    var es = el('div', 'empty-state');
-    es.appendChild(el('div', 'es-icon', '⚠️'));
-    es.appendChild(el('div', 'es-title', '검색 실패'));
-    es.appendChild(el('div', 'es-desc', '다시 시도해주세요'));
-    $searchFeed.appendChild(es);
-  }).finally(function() {
-    state.loading = false;
-  });
+if (!query.trim()) {
+if (state.activeTab === 'search') switchTab('timeline');
+return;
 }
-
-/* ══════════════════════════════════════════
-   Rendering
-   ══════════════════════════════════════════ */
-
+state.loading = true;
+if (state.activeTab !== 'search') switchTab('search');
+var p = '?q=' + encodeURIComponent(query) + '&limit=100';
+if (state.currentProject) p += '&project=' + encodeURIComponent(state.currentProject);
+fetchJSON('/api/memories' + p).then(function(d) {
+var memories = d.memories || [];
+renderSearchResults(memories);
+}).catch(function() {
+clearEl($searchFeed);
+var es = el('div', 'empty-state');
+es.appendChild(el('div', 'es-icon', '⚠️'));
+es.appendChild(el('div', 'es-title', '검색 실패'));
+es.appendChild(el('div', 'es-desc', '다시 시도해주세요'));
+$searchFeed.appendChild(es);
+}).finally(function() {
+state.loading = false;
+});
+}
 function renderStats() {
-  $statMemories.textContent = state.stats.total_memories || 0;
-  $statRelations.textContent = state.stats.total_relations || 0;
+$statMemories.textContent = state.stats.total_memories || 0;
+$statRelations.textContent = state.stats.total_relations || 0;
 }
-
 function renderProjectFilter() {
-  clearEl($projectFilter);
-  var def = document.createElement('option');
-  def.value = ''; def.textContent = '전체 프로젝트';
-  $projectFilter.appendChild(def);
-  state.projects.forEach(function(p) {
-    var o = document.createElement('option');
-    o.value = p; o.textContent = p;
-    if (p === state.currentProject) o.selected = true;
-    $projectFilter.appendChild(o);
-  });
+clearEl($projectFilter);
+var def = document.createElement('option');
+def.value = ''; def.textContent = '전체 프로젝트';
+$projectFilter.appendChild(def);
+state.projects.forEach(function(p) {
+var o = document.createElement('option');
+o.value = p; o.textContent = p;
+if (p === state.currentProject) o.selected = true;
+$projectFilter.appendChild(o);
+});
 }
-
-/* ── Build memory card (flat feed style) ── */
 function buildMemoryCard(memory) {
-  var tc = TYPE_CONFIG[memory.type] || { label: (memory.type || 'OTHER').toUpperCase(), ko: memory.type || '기타', color: '#6b7280', bg: 'rgba(107,114,128,0.15)' };
-  var tags = parseJson(memory.tags);
-  var files = parseJson(memory.files_involved);
-  var facts = parseJson(memory.facts);
-
-  var card = el('article', 'card');
-  card.setAttribute('data-id', memory.id || '');
-  card.style.setProperty('--card-accent', tc.color);
-
-  // ── Header row: badge, project, spacer, toggle buttons
-  var header = el('div', 'card-header');
-  var headerLeft = el('div', 'card-header-left');
-  var headerRight = el('div', 'card-header-right');
-
-  var badge = el('span', 'type-badge', tc.label);
-  badge.style.background = tc.bg;
-  badge.style.color = tc.color;
-  headerLeft.appendChild(badge);
-
-  if (memory.project) {
-    headerLeft.appendChild(el('span', 'project-label', memory.project));
-  }
-
-  // Toggle group
-  var toggleGroup = el('div', 'toggle-group');
-  var factsBtn = null;
-  var narrativeBtn = null;
-
-  if (facts.length > 0) {
-    factsBtn = el('button', 'toggle-btn', 'facts');
-    toggleGroup.appendChild(factsBtn);
-  }
-  if (memory.narrative) {
-    narrativeBtn = el('button', 'toggle-btn', 'narrative');
-    toggleGroup.appendChild(narrativeBtn);
-  }
-  if (toggleGroup.children.length > 0) {
-    headerRight.appendChild(toggleGroup);
-  }
-
-  header.appendChild(headerLeft);
-  header.appendChild(headerRight);
-  card.appendChild(header);
-
-  // ── Title
-  var titleEl = el('div', 'card-title');
-  titleEl.appendChild(highlightText(cleanTitle(memory.title), state.searchQuery));
-  card.appendChild(titleEl);
-
-  // ── Subtitle
-  if (memory.subtitle) {
-    var sub = el('div', 'card-subtitle');
-    sub.appendChild(highlightText(memory.subtitle, state.searchQuery));
-    card.appendChild(sub);
-  }
-
-  // ── Content (truncated)
-  if (memory.content) {
-    var txt = memory.content;
-    var truncated = txt.length > 200;
-    var contentEl = el('div', 'card-content');
-    contentEl.appendChild(highlightText(truncated ? txt.substring(0, 200) + '...' : txt, state.searchQuery));
-    card.appendChild(contentEl);
-  }
-
-  // ── Facts section (hidden by default)
-  if (facts.length > 0) {
-    var factsSection = el('div', 'facts-section');
-    facts.forEach(function(f) {
-      factsSection.appendChild(el('div', 'fact-item', f));
-    });
-    card.appendChild(factsSection);
-
-    if (factsBtn) {
-      factsBtn.addEventListener('click', function() {
-        var open = factsSection.classList.toggle('open');
-        factsBtn.classList.toggle('active', open);
-      });
-    }
-  }
-
-  // ── Narrative section (hidden by default)
-  if (memory.narrative) {
-    var narrativeSection = el('div', 'narrative-section', memory.narrative);
-    card.appendChild(narrativeSection);
-
-    if (narrativeBtn) {
-      narrativeBtn.addEventListener('click', function() {
-        var open = narrativeSection.classList.toggle('open');
-        narrativeBtn.classList.toggle('active', open);
-      });
-    }
-  }
-
-  // ── Meta row: files, tags
-  if (files.length || tags.length) {
-    var meta = el('div', 'card-meta');
-    files.forEach(function(f) {
-      meta.appendChild(el('span', 'file-tag', '📁 ' + f));
-    });
-    tags.forEach(function(t) {
-      meta.appendChild(el('span', 'tag', '🏷️ ' + t));
-    });
-    card.appendChild(meta);
-  }
-
-  // ── Backlinks (lazy loaded)
-  if (memory.id) {
-    var backlinksWrap = el('div', 'backlinks');
-    backlinksWrap.style.display = 'none';
-    backlinksWrap.setAttribute('data-mem-id', memory.id);
-    card.appendChild(backlinksWrap);
-
-    var loadedRelated = false;
-    var observer = new IntersectionObserver(function(entries) {
-      if (entries[0].isIntersecting && !loadedRelated) {
-        loadedRelated = true;
-        observer.disconnect();
-        fetchJSON('/api/memories/' + memory.id + '/related?depth=1').then(function(d) {
-          var graph = d.graph || {};
-          var nodes = graph.nodes || [];
-          var edges = graph.edges || [];
-          if (nodes.length <= 1) return;
-
-          backlinksWrap.style.display = 'block';
-          backlinksWrap.appendChild(el('div', 'backlinks-title', '── 연결된 지식 ──'));
-
-          // Build relation type lookup
-          var edgeMap = {};
-          edges.forEach(function(e) {
-            var otherId = e.source === memory.id ? e.target : e.source;
-            var rc = RELATION_CONFIG[e.relation_type] || { label: e.relation_type || '관련' };
-            edgeMap[otherId] = rc.label;
-          });
-
-          nodes.forEach(function(n) {
-            if (n.id === memory.id) return;
-            var relType = edgeMap[n.id] || '관련';
-            var btn = el('button', 'backlink', '→ ' + (cleanTitle(n.title) || '#' + n.id) + ' (' + relType + ')');
-            btn.addEventListener('click', function() {
-              scrollToCard(n.id);
-            });
-            backlinksWrap.appendChild(btn);
-          });
-        }).catch(function() {});
-      }
-    }, { rootMargin: '200px' });
-    observer.observe(backlinksWrap);
-  }
-
-  // ── Footer: ID + timestamp
-  var footer = el('div', 'card-footer');
-  if (memory.id) {
-    footer.appendChild(el('span', 'card-id', '#' + memory.id));
-    footer.appendChild(document.createTextNode(' • '));
-  }
-  footer.appendChild(document.createTextNode(formatDateTime(memory.created_at_epoch)));
-  card.appendChild(footer);
-
-  return card;
+var tc = TYPE_CONFIG[memory.type] || { label: (memory.type || 'OTHER').toUpperCase(), ko: memory.type || '기타', color: '#6b7280', bg: 'rgba(107,114,128,0.15)' };
+var tags = parseJson(memory.tags);
+var files = parseJson(memory.files_involved);
+var facts = parseJson(memory.facts);
+var card = el('article', 'card');
+card.setAttribute('data-id', memory.id || '');
+card.style.setProperty('--card-accent', tc.color);
+var header = el('div', 'card-header');
+var headerLeft = el('div', 'card-header-left');
+var headerRight = el('div', 'card-header-right');
+var badge = el('span', 'type-badge', tc.label);
+badge.style.background = tc.bg;
+badge.style.color = tc.color;
+headerLeft.appendChild(badge);
+if (memory.project) {
+headerLeft.appendChild(el('span', 'project-label', memory.project));
 }
-
-/* ── Scroll to card + highlight ── */
+var toggleGroup = el('div', 'toggle-group');
+var factsBtn = null;
+var narrativeBtn = null;
+if (facts.length > 0) {
+factsBtn = el('button', 'toggle-btn', 'facts');
+toggleGroup.appendChild(factsBtn);
+}
+if (memory.narrative) {
+narrativeBtn = el('button', 'toggle-btn', 'narrative');
+toggleGroup.appendChild(narrativeBtn);
+}
+if (toggleGroup.children.length > 0) {
+headerRight.appendChild(toggleGroup);
+}
+header.appendChild(headerLeft);
+header.appendChild(headerRight);
+card.appendChild(header);
+var titleEl = el('div', 'card-title');
+titleEl.appendChild(highlightText(cleanTitle(memory.title), state.searchQuery));
+card.appendChild(titleEl);
+if (memory.subtitle) {
+var sub = el('div', 'card-subtitle');
+sub.appendChild(highlightText(memory.subtitle, state.searchQuery));
+card.appendChild(sub);
+}
+if (memory.content) {
+var txt = memory.content;
+var truncated = txt.length > 200;
+var contentEl = el('div', 'card-content');
+contentEl.appendChild(highlightText(truncated ? txt.substring(0, 200) + '...' : txt, state.searchQuery));
+card.appendChild(contentEl);
+}
+if (facts.length > 0) {
+var factsSection = el('div', 'facts-section');
+facts.forEach(function(f) {
+factsSection.appendChild(el('div', 'fact-item', f));
+});
+card.appendChild(factsSection);
+if (factsBtn) {
+factsBtn.addEventListener('click', function() {
+var open = factsSection.classList.toggle('open');
+factsBtn.classList.toggle('active', open);
+});
+}
+}
+if (memory.narrative) {
+var narrativeSection = el('div', 'narrative-section', memory.narrative);
+card.appendChild(narrativeSection);
+if (narrativeBtn) {
+narrativeBtn.addEventListener('click', function() {
+var open = narrativeSection.classList.toggle('open');
+narrativeBtn.classList.toggle('active', open);
+});
+}
+}
+if (files.length || tags.length) {
+var meta = el('div', 'card-meta');
+files.forEach(function(f) {
+meta.appendChild(el('span', 'file-tag', '📁 ' + f));
+});
+tags.forEach(function(t) {
+meta.appendChild(el('span', 'tag', '🏷️ ' + t));
+});
+card.appendChild(meta);
+}
+if (memory.id) {
+var backlinksWrap = el('div', 'backlinks');
+backlinksWrap.style.display = 'none';
+backlinksWrap.setAttribute('data-mem-id', memory.id);
+card.appendChild(backlinksWrap);
+var loadedRelated = false;
+var observer = new IntersectionObserver(function(entries) {
+if (entries[0].isIntersecting && !loadedRelated) {
+loadedRelated = true;
+observer.disconnect();
+fetchJSON('/api/memories/' + memory.id + '/related?depth=1').then(function(d) {
+var graph = d.graph || {};
+var nodes = graph.nodes || [];
+var edges = graph.edges || [];
+if (nodes.length <= 1) return;
+backlinksWrap.style.display = 'block';
+backlinksWrap.appendChild(el('div', 'backlinks-title', '── 연결된 지식 ──'));
+var edgeMap = {};
+edges.forEach(function(e) {
+var otherId = e.source === memory.id ? e.target : e.source;
+var rc = RELATION_CONFIG[e.relation_type] || { label: e.relation_type || '관련' };
+edgeMap[otherId] = rc.label;
+});
+nodes.forEach(function(n) {
+if (n.id === memory.id) return;
+var relType = edgeMap[n.id] || '관련';
+var btn = el('button', 'backlink', '→ ' + (cleanTitle(n.title) || '#' + n.id) + ' (' + relType + ')');
+btn.addEventListener('click', function() {
+scrollToCard(n.id);
+});
+backlinksWrap.appendChild(btn);
+});
+}).catch(function() {});
+}
+}, { rootMargin: '200px' });
+observer.observe(backlinksWrap);
+}
+var footer = el('div', 'card-footer');
+if (memory.id) {
+footer.appendChild(el('span', 'card-id', '#' + memory.id));
+footer.appendChild(document.createTextNode(' • '));
+}
+footer.appendChild(document.createTextNode(formatDateTime(memory.created_at_epoch)));
+card.appendChild(footer);
+return card;
+}
 function scrollToCard(id) {
-  var target = document.querySelector('[data-id="' + id + '"]');
-  if (target) {
-    // Switch to timeline tab if needed
-    if (state.activeTab !== 'timeline') switchTab('timeline');
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    target.classList.add('highlight');
-    setTimeout(function() { target.classList.remove('highlight'); }, 1500);
-  }
+var target = document.querySelector('[data-id="' + id + '"]');
+if (target) {
+if (state.activeTab !== 'timeline') switchTab('timeline');
+target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+target.classList.add('highlight');
+setTimeout(function() { target.classList.remove('highlight'); }, 1500);
 }
-
-/* ── Build summary card ── */
+}
 function buildSummaryCard(summary) {
-  var card = el('div', 'summary-card');
-  card.setAttribute('data-session-id', summary.session_id || '');
-
-  var label = el('div', 'summary-label');
-  label.textContent = '── 세션 요약 • ' + formatDate(summary.created_at_epoch) + ' ──';
-  card.appendChild(label);
-
-  var fields = el('div', 'summary-fields');
-  var fieldDefs = [
-    { key: 'request', label: '요청' },
-    { key: 'completed', altKey: 'what_done', label: '완료' },
-    { key: 'learned', altKey: 'what_learned', label: '배운 점' },
-    { key: 'next_steps', label: '다음' },
-  ];
-  fieldDefs.forEach(function(fd) {
-    var val = summary[fd.key] || (fd.altKey && summary[fd.altKey]) || '';
-    if (!val) return;
-    var sf = el('div', 'summary-field');
-    sf.appendChild(el('span', 'sf-label', fd.label));
-    sf.appendChild(el('span', 'sf-value', val));
-    fields.appendChild(sf);
-  });
-  if (fields.children.length) card.appendChild(fields);
-
-  var footer = el('div', 'summary-footer');
-  footer.textContent = (summary.session_id ? summary.session_id.substring(0, 8) + '...' : '') + ' • ' + formatDateTime(summary.created_at_epoch);
-  card.appendChild(footer);
-
-  // 클릭으로 펼치기/접기
-  card.addEventListener('click', function() {
-    if (card.style.maxHeight === 'none') {
-      card.style.maxHeight = '200px';
-    } else {
-      card.style.maxHeight = 'none';
-    }
-  });
-
-  return card;
+var card = el('div', 'summary-card');
+card.setAttribute('data-session-id', summary.session_id || '');
+var label = el('div', 'summary-label');
+label.textContent = '── 세션 요약 • ' + formatDate(summary.created_at_epoch) + ' ──';
+card.appendChild(label);
+var fields = el('div', 'summary-fields');
+var fieldDefs = [
+{ key: 'request', label: '요청' },
+{ key: 'completed', altKey: 'what_done', label: '완료' },
+{ key: 'learned', altKey: 'what_learned', label: '배운 점' },
+{ key: 'next_steps', label: '다음' },
+];
+fieldDefs.forEach(function(fd) {
+var val = summary[fd.key] || (fd.altKey && summary[fd.altKey]) || '';
+if (!val) return;
+var sf = el('div', 'summary-field');
+sf.appendChild(el('span', 'sf-label', fd.label));
+sf.appendChild(el('span', 'sf-value', val));
+fields.appendChild(sf);
+});
+if (fields.children.length) card.appendChild(fields);
+var footer = el('div', 'summary-footer');
+footer.textContent = (summary.session_id ? summary.session_id.substring(0, 8) + '...' : '') + ' • ' + formatDateTime(summary.created_at_epoch);
+card.appendChild(footer);
+card.addEventListener('click', function() {
+if (card.style.maxHeight === 'none') {
+card.style.maxHeight = '200px';
+} else {
+card.style.maxHeight = 'none';
 }
-
-/* ── Build date divider ── */
+});
+return card;
+}
 function buildDateDivider(dateStr) {
-  var div = el('div', 'date-divider');
-  div.setAttribute('role', 'separator');
-  div.textContent = dateStr;
-  return div;
+var div = el('div', 'date-divider');
+div.setAttribute('role', 'separator');
+div.textContent = dateStr;
+return div;
 }
-
-/* ── Main feed renderer (flat, no session grouping) ── */
 function renderFeed() {
-  clearEl($feed);
-
-  // Combine memories and summaries into one flat timeline
-  var items = [];
-
-  state.memories.forEach(function(m) {
-    items.push({ type: 'memory', data: m, epoch: m.created_at_epoch || 0 });
-  });
-
-  // Index summaries by session_id to avoid duplicates with memories
-  state.summaries.forEach(function(s) {
-    items.push({ type: 'summary', data: s, epoch: s.created_at_epoch || 0 });
-  });
-
-  // Sort newest first
-  items.sort(function(a, b) { return b.epoch - a.epoch; });
-
-  if (!items.length) {
-    var es = el('div', 'empty-state');
-    es.appendChild(el('div', 'es-icon', '📭'));
-    es.appendChild(el('div', 'es-title', '아직 지식이 없습니다'));
-    es.appendChild(el('div', 'es-desc', 'Claude Code 세션에서 지식이 축적되면 여기에 표시됩니다'));
-    $feed.appendChild(es);
-    $loadMoreWrap.style.display = 'none';
-    return;
-  }
-
-  var lastDate = '';
-  items.forEach(function(item) {
-    var dateStr = formatDate(item.epoch);
-    if (dateStr !== lastDate) {
-      $feed.appendChild(buildDateDivider(dateStr));
-      lastDate = dateStr;
-    }
-    if (item.type === 'summary') {
-      $feed.appendChild(buildSummaryCard(item.data));
-    } else {
-      $feed.appendChild(buildMemoryCard(item.data));
-    }
-  });
-
-  $loadMoreWrap.style.display = 'none';
+clearEl($feed);
+var items = [];
+state.memories.forEach(function(m) {
+items.push({ type: 'memory', data: m, epoch: m.created_at_epoch || 0 });
+});
+state.summaries.forEach(function(s) {
+items.push({ type: 'summary', data: s, epoch: s.created_at_epoch || 0 });
+});
+items.sort(function(a, b) { return b.epoch - a.epoch; });
+if (!items.length) {
+var es = el('div', 'empty-state');
+es.appendChild(el('div', 'es-icon', '📭'));
+es.appendChild(el('div', 'es-title', '아직 지식이 없습니다'));
+es.appendChild(el('div', 'es-desc', 'Claude Code 세션에서 지식이 축적되면 여기에 표시됩니다'));
+$feed.appendChild(es);
+$loadMoreWrap.style.display = 'none';
+return;
 }
-
-/* ── Search results ── */
+var lastDate = '';
+items.forEach(function(item) {
+var dateStr = formatDate(item.epoch);
+if (dateStr !== lastDate) {
+$feed.appendChild(buildDateDivider(dateStr));
+lastDate = dateStr;
+}
+if (item.type === 'summary') {
+$feed.appendChild(buildSummaryCard(item.data));
+} else {
+$feed.appendChild(buildMemoryCard(item.data));
+}
+});
+$loadMoreWrap.style.display = 'none';
+}
 function renderSearchResults(memories) {
-  clearEl($searchFeed);
-  if (!memories.length) {
-    var es = el('div', 'empty-state');
-    es.appendChild(el('div', 'es-icon', '🔍'));
-    es.appendChild(el('div', 'es-title', '검색 결과 없음'));
-    es.appendChild(el('div', 'es-desc', '"' + state.searchQuery + '"에 대한 결과가 없습니다'));
-    $searchFeed.appendChild(es);
-    return;
-  }
-  var lastDate = '';
-  memories.forEach(function(m) {
-    var dateStr = formatDate(m.created_at_epoch);
-    if (dateStr !== lastDate) {
-      $searchFeed.appendChild(buildDateDivider(dateStr));
-      lastDate = dateStr;
-    }
-    $searchFeed.appendChild(buildMemoryCard(m));
-  });
+clearEl($searchFeed);
+if (!memories.length) {
+var es = el('div', 'empty-state');
+es.appendChild(el('div', 'es-icon', '🔍'));
+es.appendChild(el('div', 'es-title', '검색 결과 없음'));
+es.appendChild(el('div', 'es-desc', '"' + state.searchQuery + '"에 대한 결과가 없습니다'));
+$searchFeed.appendChild(es);
+return;
 }
-
-/* ── Loading / Error states ── */
+var lastDate = '';
+memories.forEach(function(m) {
+var dateStr = formatDate(m.created_at_epoch);
+if (dateStr !== lastDate) {
+$searchFeed.appendChild(buildDateDivider(dateStr));
+lastDate = dateStr;
+}
+$searchFeed.appendChild(buildMemoryCard(m));
+});
+}
 function showLoading() {
-  clearEl($feed);
-  var ld = el('div', 'loading');
-  ld.appendChild(el('span', 'spinner'));
-  ld.appendChild(document.createTextNode('불러오는 중...'));
-  $feed.appendChild(ld);
+clearEl($feed);
+var ld = el('div', 'loading');
+ld.appendChild(el('span', 'spinner'));
+ld.appendChild(document.createTextNode('불러오는 중...'));
+$feed.appendChild(ld);
 }
-
 function showError() {
-  clearEl($feed);
-  var es = el('div', 'empty-state');
-  es.appendChild(el('div', 'es-icon', '⚠️'));
-  es.appendChild(el('div', 'es-title', '연결할 수 없습니다'));
-  es.appendChild(el('div', 'es-desc', 'Worker가 실행 중인지 확인해주세요 (포트 37888)'));
-  $feed.appendChild(es);
+clearEl($feed);
+var es = el('div', 'empty-state');
+es.appendChild(el('div', 'es-icon', '⚠️'));
+es.appendChild(el('div', 'es-title', '연결할 수 없습니다'));
+es.appendChild(el('div', 'es-desc', 'Worker가 실행 중인지 확인해주세요 (포트 37888)'));
+$feed.appendChild(es);
 }
-
-
-/* ══════════════════════════════════════════
-   Graph View — Canvas force-directed layout
-   ══════════════════════════════════════════ */
-
+function showEmptyProject(){$emptyProject.style.display='';$projectDashboard.style.display='none'}
+function loadProject(){
+fetchJSON('/api/projects').then(function(d){
+var ps=d.projects||[];
+if(!ps.length){showEmptyProject();return}
+var a=ps.find(function(p){return p.status==='active'})||ps[0];
+fetchJSON('/api/dashboard?projectId='+a.id).then(function(db){renderProjDash(db)}).catch(showEmptyProject);
+}).catch(showEmptyProject);
+}
+function statusIcon(s){return s==='completed'?'✅':s==='in_progress'?'🔄':'⬜'}
+function renderProjDash(db){
+$emptyProject.style.display='none';$projectDashboard.style.display='';clearEl($projectDashboard);
+var p=db.project||db,ms=db.milestones||[],pct=db.percent||0;
+var hd=el('div','project-header');
+hd.appendChild(el('h2','project-name',p.name||'프로젝트'));
+var mt=el('div','project-meta');
+mt.appendChild(el('span','project-status',p.status==='active'?'진행 중':p.status==='completed'?'완료':(p.status||'')));
+if(p.created_at)mt.appendChild(el('span','project-date',formatDate(p.created_at_epoch||new Date(p.created_at).getTime())));
+hd.appendChild(mt);$projectDashboard.appendChild(hd);
+var ps=el('div','progress-section'),pb=el('div','progress-bar'),pf=el('div','progress-fill');
+pf.style.width=pct+'%';pb.appendChild(pf);ps.appendChild(pb);
+ps.appendChild(el('span','progress-text',pct+'% 완료'));$projectDashboard.appendChild(ps);
+if(!ms.length)return;
+var ml=el('div','milestone-list');
+ms.forEach(function(m){
+var ts=m.tasks||[],done=ts.filter(function(t){return t.status==='completed'}).length;
+var st=done===ts.length&&ts.length?'completed':ts.some(function(t){return t.status==='in_progress'})?'in_progress':'pending';
+var c=el('div','milestone-card '+st),mh=el('div','milestone-header');
+mh.appendChild(el('span','milestone-icon',statusIcon(st)));
+mh.appendChild(el('span','milestone-title',m.title||m.name||''));
+mh.appendChild(el('span','milestone-progress',done+'/'+ts.length));c.appendChild(mh);
+if(ts.length){var tl=el('div','milestone-tasks');
+ts.forEach(function(t){var s=t.status||'pending',ti=el('div','task-item '+s);
+ti.appendChild(el('span','task-check',statusIcon(s)));
+ti.appendChild(el('span','task-title',t.title||t.name||''));
+if(t.priority)ti.appendChild(el('span','task-priority',t.priority));
+tl.appendChild(ti);
+if(t.related_memory)tl.appendChild(el('div','task-memory','💡 참고: '+t.related_memory));
+});c.appendChild(tl)}ml.appendChild(c)});
+$projectDashboard.appendChild(ml);
+}
 var graphState = {
-  nodes: [], edges: [],
-  vx: {}, vy: {},
-  dragging: null, dragOff: { x: 0, y: 0 },
-  panX: 0, panY: 0, panStartX: 0, panStartY: 0, isPanning: false,
-  scale: 1,
-  hovered: null,
-  animFrame: null,
+nodes: [], edges: [],
+vx: {}, vy: {},
+dragging: null, dragOff: { x: 0, y: 0 },
+panX: 0, panY: 0, panStartX: 0, panStartY: 0, isPanning: false,
+scale: 1,
+hovered: null,
+animFrame: null,
 };
-
 function loadGraph() {
-  var p = '?limit=100';
-  if (state.currentProject) p += '&project=' + encodeURIComponent(state.currentProject);
-  fetchJSON('/api/memories' + p).then(function(d) {
-    var memories = d.memories || [];
-    if (memories.length === 0) { renderGraphEmpty(); return; }
-
-    var allNodes = {};
-    var allEdges = {};
-
-    memories.forEach(function(m) {
-      allNodes[m.id] = { id: m.id, title: m.title || '', type: m.type || '', x: 0, y: 0 };
-    });
-
-    var ids = memories.map(function(m) { return m.id; });
-    var batchSize = 10;
-    var batches = [];
-    for (var i = 0; i < ids.length; i += batchSize) {
-      batches.push(ids.slice(i, i + batchSize));
-    }
-
-    var chainP = Promise.resolve();
-    batches.forEach(function(batch) {
-      chainP = chainP.then(function() {
-        return Promise.all(batch.map(function(id) {
-          return fetchJSON('/api/memories/' + id + '/related?depth=1').then(function(r) {
-            var g = r.graph || {};
-            (g.nodes || []).forEach(function(n) {
-              if (!allNodes[n.id]) allNodes[n.id] = { id: n.id, title: n.title || '', type: n.type || '', x: 0, y: 0 };
-            });
-            (g.edges || []).forEach(function(e) {
-              var key = e.source + '-' + e.target + '-' + e.relation_type;
-              if (!allEdges[key]) allEdges[key] = e;
-            });
-          }).catch(function() {});
-        }));
-      });
-    });
-
-    chainP.then(function() {
-      var nodes = Object.keys(allNodes).map(function(k) { return allNodes[k]; });
-      var edges = Object.keys(allEdges).map(function(k) { return allEdges[k]; });
-      initGraph(nodes, edges);
-    });
-  }).catch(function() {
-    renderGraphEmpty();
-  });
+var p = '?limit=100';
+if (state.currentProject) p += '&project=' + encodeURIComponent(state.currentProject);
+fetchJSON('/api/memories' + p).then(function(d) {
+var memories = d.memories || [];
+if (memories.length === 0) { renderGraphEmpty(); return; }
+var allNodes = {};
+var allEdges = {};
+memories.forEach(function(m) {
+allNodes[m.id] = { id: m.id, title: m.title || '', type: m.type || '', x: 0, y: 0 };
+});
+var ids = memories.map(function(m) { return m.id; });
+var batchSize = 10;
+var batches = [];
+for (var i = 0; i < ids.length; i += batchSize) {
+batches.push(ids.slice(i, i + batchSize));
 }
-
+var chainP = Promise.resolve();
+batches.forEach(function(batch) {
+chainP = chainP.then(function() {
+return Promise.all(batch.map(function(id) {
+return fetchJSON('/api/memories/' + id + '/related?depth=1').then(function(r) {
+var g = r.graph || {};
+(g.nodes || []).forEach(function(n) {
+if (!allNodes[n.id]) allNodes[n.id] = { id: n.id, title: n.title || '', type: n.type || '', x: 0, y: 0 };
+});
+(g.edges || []).forEach(function(e) {
+var key = e.source + '-' + e.target + '-' + e.relation_type;
+if (!allEdges[key]) allEdges[key] = e;
+});
+}).catch(function() {});
+}));
+});
+});
+chainP.then(function() {
+var nodes = Object.keys(allNodes).map(function(k) { return allNodes[k]; });
+var edges = Object.keys(allEdges).map(function(k) { return allEdges[k]; });
+initGraph(nodes, edges);
+});
+}).catch(function() {
+renderGraphEmpty();
+});
+}
 function renderGraphEmpty() {
-  var ctx = $canvas.getContext('2d');
-  resizeCanvas();
-  ctx.clearRect(0, 0, $canvas.width, $canvas.height);
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim();
-  ctx.font = '14px ' + getComputedStyle(document.body).fontFamily;
-  ctx.textAlign = 'center';
-  ctx.fillText('관계 데이터가 없습니다', $canvas.width / (2 * (window.devicePixelRatio || 1)), $canvas.height / (2 * (window.devicePixelRatio || 1)));
+var ctx = $canvas.getContext('2d');
+resizeCanvas();
+ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim();
+ctx.font = '14px ' + getComputedStyle(document.body).fontFamily;
+ctx.textAlign = 'center';
+ctx.fillText('관계 데이터가 없습니다', $canvas.width / (2 * (window.devicePixelRatio || 1)), $canvas.height / (2 * (window.devicePixelRatio || 1)));
 }
-
 function resizeCanvas() {
-  var rect = $canvas.getBoundingClientRect();
-  var dpr = window.devicePixelRatio || 1;
-  $canvas.width = rect.width * dpr;
-  $canvas.height = rect.height * dpr;
-  var ctx = $canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
+var rect = $canvas.getBoundingClientRect();
+var dpr = window.devicePixelRatio || 1;
+$canvas.width = rect.width * dpr;
+$canvas.height = rect.height * dpr;
+var ctx = $canvas.getContext('2d');
+ctx.scale(dpr, dpr);
 }
-
 function initGraph(nodes, edges) {
-  graphState.nodes = nodes;
-  graphState.edges = edges;
-  graphState.vx = {}; graphState.vy = {};
-  graphState.panX = 0; graphState.panY = 0;
-  graphState.scale = 1; graphState.dragging = null; graphState.hovered = null;
-
-  resizeCanvas();
-  var rect = $canvas.getBoundingClientRect();
-  var cx = rect.width / 2; var cy = rect.height / 2;
-
-  nodes.forEach(function(n, i) {
-    var angle = (2 * Math.PI * i) / nodes.length;
-    var r = Math.min(cx, cy) * 0.6;
-    n.x = cx + r * Math.cos(angle);
-    n.y = cy + r * Math.sin(angle);
-    graphState.vx[n.id] = 0;
-    graphState.vy[n.id] = 0;
-  });
-
-  renderLegend();
-  if (graphState.animFrame) cancelAnimationFrame(graphState.animFrame);
-  simulateGraph();
+graphState.nodes = nodes;
+graphState.edges = edges;
+graphState.vx = {}; graphState.vy = {};
+graphState.panX = 0; graphState.panY = 0;
+graphState.scale = 1; graphState.dragging = null; graphState.hovered = null;
+resizeCanvas();
+var rect = $canvas.getBoundingClientRect();
+var cx = rect.width / 2; var cy = rect.height / 2;
+nodes.forEach(function(n, i) {
+var angle = (2 * Math.PI * i) / nodes.length;
+var r = Math.min(cx, cy) * 0.6;
+n.x = cx + r * Math.cos(angle);
+n.y = cy + r * Math.sin(angle);
+graphState.vx[n.id] = 0;
+graphState.vy[n.id] = 0;
+});
+renderLegend();
+if (graphState.animFrame) cancelAnimationFrame(graphState.animFrame);
+simulateGraph();
 }
-
 function simulateGraph() {
-  var nodes = graphState.nodes;
-  var edges = graphState.edges;
-  if (!nodes.length) { renderGraphEmpty(); return; }
-
-  var nodeMap = {};
-  nodes.forEach(function(n) { nodeMap[n.id] = n; });
-
-  var iterations = 0;
-  var maxIter = 300;
-
-  function step() {
-    iterations++;
-    var damping = iterations < maxIter ? 0.85 : 0;
-    var rect = $canvas.getBoundingClientRect();
-    var W = rect.width; var H = rect.height;
-
-    // Repulsion (Coulomb) — repulsion 2000
-    for (var i = 0; i < nodes.length; i++) {
-      for (var j = i + 1; j < nodes.length; j++) {
-        var dx = nodes[j].x - nodes[i].x;
-        var dy = nodes[j].y - nodes[i].y;
-        var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        var force = 2000 / (dist * dist);
-        var fx = dx / dist * force;
-        var fy = dy / dist * force;
-        graphState.vx[nodes[i].id] -= fx;
-        graphState.vy[nodes[i].id] -= fy;
-        graphState.vx[nodes[j].id] += fx;
-        graphState.vy[nodes[j].id] += fy;
-      }
-    }
-
-    // Attraction (spring) — spring length 180
-    edges.forEach(function(e) {
-      var s = nodeMap[e.source]; var t = nodeMap[e.target];
-      if (!s || !t) return;
-      var dx = t.x - s.x; var dy = t.y - s.y;
-      var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      var force = (dist - 180) * 0.02;
-      var fx = dx / dist * force;
-      var fy = dy / dist * force;
-      graphState.vx[s.id] += fx; graphState.vy[s.id] += fy;
-      graphState.vx[t.id] -= fx; graphState.vy[t.id] -= fy;
-    });
-
-    // Center gravity — 0.003
-    nodes.forEach(function(n) {
-      graphState.vx[n.id] += (W / 2 - n.x) * 0.003;
-      graphState.vy[n.id] += (H / 2 - n.y) * 0.003;
-    });
-
-    // Apply velocities
-    nodes.forEach(function(n) {
-      if (graphState.dragging && graphState.dragging.id === n.id) return;
-      graphState.vx[n.id] *= damping;
-      graphState.vy[n.id] *= damping;
-      n.x += graphState.vx[n.id];
-      n.y += graphState.vy[n.id];
-      n.x = Math.max(30, Math.min(W - 30, n.x));
-      n.y = Math.max(30, Math.min(H - 30, n.y));
-    });
-
-    drawGraph();
-    if (iterations < maxIter + 60) {
-      graphState.animFrame = requestAnimationFrame(step);
-    }
-  }
-  step();
+var nodes = graphState.nodes;
+var edges = graphState.edges;
+if (!nodes.length) { renderGraphEmpty(); return; }
+var nodeMap = {};
+nodes.forEach(function(n) { nodeMap[n.id] = n; });
+var iterations = 0;
+var maxIter = 300;
+function step() {
+iterations++;
+var damping = iterations < maxIter ? 0.85 : 0;
+var rect = $canvas.getBoundingClientRect();
+var W = rect.width; var H = rect.height;
+for (var i = 0; i < nodes.length; i++) {
+for (var j = i + 1; j < nodes.length; j++) {
+var dx = nodes[j].x - nodes[i].x;
+var dy = nodes[j].y - nodes[i].y;
+var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+var force = 2000 / (dist * dist);
+var fx = dx / dist * force;
+var fy = dy / dist * force;
+graphState.vx[nodes[i].id] -= fx;
+graphState.vy[nodes[i].id] -= fy;
+graphState.vx[nodes[j].id] += fx;
+graphState.vy[nodes[j].id] += fy;
 }
-
+}
+edges.forEach(function(e) {
+var s = nodeMap[e.source]; var t = nodeMap[e.target];
+if (!s || !t) return;
+var dx = t.x - s.x; var dy = t.y - s.y;
+var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+var force = (dist - 180) * 0.02;
+var fx = dx / dist * force;
+var fy = dy / dist * force;
+graphState.vx[s.id] += fx; graphState.vy[s.id] += fy;
+graphState.vx[t.id] -= fx; graphState.vy[t.id] -= fy;
+});
+nodes.forEach(function(n) {
+graphState.vx[n.id] += (W / 2 - n.x) * 0.003;
+graphState.vy[n.id] += (H / 2 - n.y) * 0.003;
+});
+nodes.forEach(function(n) {
+if (graphState.dragging && graphState.dragging.id === n.id) return;
+graphState.vx[n.id] *= damping;
+graphState.vy[n.id] *= damping;
+n.x += graphState.vx[n.id];
+n.y += graphState.vy[n.id];
+n.x = Math.max(30, Math.min(W - 30, n.x));
+n.y = Math.max(30, Math.min(H - 30, n.y));
+});
+drawGraph();
+if (iterations < maxIter + 60) {
+graphState.animFrame = requestAnimationFrame(step);
+}
+}
+step();
+}
 function drawGraph() {
-  var ctx = $canvas.getContext('2d');
-  var rect = $canvas.getBoundingClientRect();
-  var W = rect.width; var H = rect.height;
-  ctx.clearRect(0, 0, W, H);
-
-  ctx.save();
-  ctx.translate(graphState.panX, graphState.panY);
-  ctx.scale(graphState.scale, graphState.scale);
-
-  var nodeMap = {};
-  graphState.nodes.forEach(function(n) { nodeMap[n.id] = n; });
-
-  // Draw edges
-  graphState.edges.forEach(function(e) {
-    var s = nodeMap[e.source]; var t = nodeMap[e.target];
-    if (!s || !t) return;
-    var rc = RELATION_CONFIG[e.relation_type] || { color: '#6b7280', dash: [] };
-    ctx.beginPath();
-    ctx.strokeStyle = rc.color + '88';
-    ctx.lineWidth = 1.5 * (e.confidence || 0.5) + 0.5;
-    ctx.setLineDash(rc.dash || []);
-    ctx.moveTo(s.x, s.y);
-    ctx.lineTo(t.x, t.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  });
-
-  // Draw nodes
-  var textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
-  var fontFamily = getComputedStyle(document.body).fontFamily;
-
-  graphState.nodes.forEach(function(n) {
-    var tc = TYPE_CONFIG[n.type] || { color: '#6b7280', bg: 'rgba(107,114,128,0.15)' };
-    var r = graphState.hovered && graphState.hovered.id === n.id ? 18 : 14;
-
-    // Glow for hovered
-    if (graphState.hovered && graphState.hovered.id === n.id) {
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, r + 4, 0, Math.PI * 2);
-      ctx.fillStyle = tc.color + '20';
-      ctx.fill();
-    }
-
-    ctx.beginPath();
-    ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = tc.bg || (tc.color + '30');
-    ctx.fill();
-    ctx.strokeStyle = tc.color;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Label — use cleanTitle
-    var label = cleanTitle(n.title) || '';
-    if (label.length > 14) label = label.substring(0, 14) + '...';
-    ctx.fillStyle = textColor;
-    ctx.font = '11px ' + fontFamily;
-    ctx.textAlign = 'center';
-    ctx.fillText(label, n.x, n.y + r + 14);
-  });
-
-  ctx.restore();
+var ctx = $canvas.getContext('2d');
+var rect = $canvas.getBoundingClientRect();
+var W = rect.width; var H = rect.height;
+ctx.clearRect(0, 0, W, H);
+ctx.save();
+ctx.translate(graphState.panX, graphState.panY);
+ctx.scale(graphState.scale, graphState.scale);
+var nodeMap = {};
+graphState.nodes.forEach(function(n) { nodeMap[n.id] = n; });
+graphState.edges.forEach(function(e) {
+var s = nodeMap[e.source]; var t = nodeMap[e.target];
+if (!s || !t) return;
+var rc = RELATION_CONFIG[e.relation_type] || { color: '#6b7280', dash: [] };
+ctx.beginPath();
+ctx.strokeStyle = rc.color + '88';
+ctx.lineWidth = 1.5 * (e.confidence || 0.5) + 0.5;
+ctx.setLineDash(rc.dash || []);
+ctx.moveTo(s.x, s.y);
+ctx.lineTo(t.x, t.y);
+ctx.stroke();
+ctx.setLineDash([]);
+});
+var textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
+var fontFamily = getComputedStyle(document.body).fontFamily;
+graphState.nodes.forEach(function(n) {
+var tc = TYPE_CONFIG[n.type] || { color: '#6b7280', bg: 'rgba(107,114,128,0.15)' };
+var r = graphState.hovered && graphState.hovered.id === n.id ? 18 : 14;
+if (graphState.hovered && graphState.hovered.id === n.id) {
+ctx.beginPath();
+ctx.arc(n.x, n.y, r + 4, 0, Math.PI * 2);
+ctx.fillStyle = tc.color + '20';
+ctx.fill();
 }
-
+ctx.beginPath();
+ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+ctx.fillStyle = tc.bg || (tc.color + '30');
+ctx.fill();
+ctx.strokeStyle = tc.color;
+ctx.lineWidth = 2;
+ctx.stroke();
+var label = cleanTitle(n.title) || '';
+if (label.length > 14) label = label.substring(0, 14) + '...';
+ctx.fillStyle = textColor;
+ctx.font = '11px ' + fontFamily;
+ctx.textAlign = 'center';
+ctx.fillText(label, n.x, n.y + r + 14);
+});
+ctx.restore();
+}
 function getNodeAt(mx, my) {
-  var x = (mx - graphState.panX) / graphState.scale;
-  var y = (my - graphState.panY) / graphState.scale;
-  for (var i = graphState.nodes.length - 1; i >= 0; i--) {
-    var n = graphState.nodes[i];
-    var dx = n.x - x; var dy = n.y - y;
-    if (dx * dx + dy * dy < 18 * 18) return n;
-  }
-  return null;
+var x = (mx - graphState.panX) / graphState.scale;
+var y = (my - graphState.panY) / graphState.scale;
+for (var i = graphState.nodes.length - 1; i >= 0; i--) {
+var n = graphState.nodes[i];
+var dx = n.x - x; var dy = n.y - y;
+if (dx * dx + dy * dy < 18 * 18) return n;
 }
-
+return null;
+}
 function renderLegend() {
-  clearEl($legend);
-  Object.keys(TYPE_CONFIG).forEach(function(t) {
-    var tc = TYPE_CONFIG[t];
-    var item = el('span', 'graph-legend-item');
-    var dot = el('span', 'graph-legend-dot');
-    dot.style.background = tc.color;
-    item.appendChild(dot);
-    item.appendChild(document.createTextNode(tc.label));
-    $legend.appendChild(item);
-  });
-  Object.keys(RELATION_CONFIG).forEach(function(r) {
-    var rc = RELATION_CONFIG[r];
-    var item = el('span', 'graph-legend-item');
-    var line = el('span', '');
-    line.style.cssText = 'width:16px;height:2px;background:' + rc.color + ';display:inline-block;vertical-align:middle;margin-right:2px;border-radius:1px';
-    item.appendChild(line);
-    item.appendChild(document.createTextNode(rc.label));
-    $legend.appendChild(item);
-  });
+clearEl($legend);
+Object.keys(TYPE_CONFIG).forEach(function(t) {
+var tc = TYPE_CONFIG[t];
+var item = el('span', 'graph-legend-item');
+var dot = el('span', 'graph-legend-dot');
+dot.style.background = tc.color;
+item.appendChild(dot);
+item.appendChild(document.createTextNode(tc.label));
+$legend.appendChild(item);
+});
+Object.keys(RELATION_CONFIG).forEach(function(r) {
+var rc = RELATION_CONFIG[r];
+var item = el('span', 'graph-legend-item');
+var line = el('span', '');
+line.style.cssText = 'width:16px;height:2px;background:' + rc.color + ';display:inline-block;vertical-align:middle;margin-right:2px;border-radius:1px';
+item.appendChild(line);
+item.appendChild(document.createTextNode(rc.label));
+$legend.appendChild(item);
+});
 }
-
-/* ── Canvas interaction ── */
 $canvas.addEventListener('mousedown', function(e) {
-  var rect = $canvas.getBoundingClientRect();
-  var mx = e.clientX - rect.left; var my = e.clientY - rect.top;
-  var node = getNodeAt(mx, my);
-  if (node) {
-    graphState.dragging = node;
-    graphState.dragOff = { x: (mx - graphState.panX) / graphState.scale - node.x, y: (my - graphState.panY) / graphState.scale - node.y };
-  } else {
-    graphState.isPanning = true;
-    graphState.panStartX = e.clientX - graphState.panX;
-    graphState.panStartY = e.clientY - graphState.panY;
-  }
+var rect = $canvas.getBoundingClientRect();
+var mx = e.clientX - rect.left; var my = e.clientY - rect.top;
+var node = getNodeAt(mx, my);
+if (node) {
+graphState.dragging = node;
+graphState.dragOff = { x: (mx - graphState.panX) / graphState.scale - node.x, y: (my - graphState.panY) / graphState.scale - node.y };
+} else {
+graphState.isPanning = true;
+graphState.panStartX = e.clientX - graphState.panX;
+graphState.panStartY = e.clientY - graphState.panY;
+}
 });
-
 $canvas.addEventListener('mousemove', function(e) {
-  var rect = $canvas.getBoundingClientRect();
-  var mx = e.clientX - rect.left; var my = e.clientY - rect.top;
-  if (graphState.dragging) {
-    graphState.dragging.x = (mx - graphState.panX) / graphState.scale - graphState.dragOff.x;
-    graphState.dragging.y = (my - graphState.panY) / graphState.scale - graphState.dragOff.y;
-    graphState.vx[graphState.dragging.id] = 0;
-    graphState.vy[graphState.dragging.id] = 0;
-    drawGraph();
-  } else if (graphState.isPanning) {
-    graphState.panX = e.clientX - graphState.panStartX;
-    graphState.panY = e.clientY - graphState.panStartY;
-    drawGraph();
-  } else {
-    var node = getNodeAt(mx, my);
-    if (node !== graphState.hovered) {
-      graphState.hovered = node;
-      drawGraph();
-      if (node) {
-        $tooltip.style.display = 'block';
-        $tooltip.style.left = (mx + 12) + 'px';
-        $tooltip.style.top = (my - 8) + 'px';
-        $tooltip.querySelector('.gt-title').textContent = cleanTitle(node.title) || '#' + node.id;
-        var tc = TYPE_CONFIG[node.type] || { label: node.type || '', ko: '' };
-        $tooltip.querySelector('.gt-type').textContent = tc.label + (tc.ko ? ' (' + tc.ko + ')' : '');
-      } else {
-        $tooltip.style.display = 'none';
-      }
-    } else if (node) {
-      $tooltip.style.left = (mx + 12) + 'px';
-      $tooltip.style.top = (my - 8) + 'px';
-    }
-  }
+var rect = $canvas.getBoundingClientRect();
+var mx = e.clientX - rect.left; var my = e.clientY - rect.top;
+if (graphState.dragging) {
+graphState.dragging.x = (mx - graphState.panX) / graphState.scale - graphState.dragOff.x;
+graphState.dragging.y = (my - graphState.panY) / graphState.scale - graphState.dragOff.y;
+graphState.vx[graphState.dragging.id] = 0;
+graphState.vy[graphState.dragging.id] = 0;
+drawGraph();
+} else if (graphState.isPanning) {
+graphState.panX = e.clientX - graphState.panStartX;
+graphState.panY = e.clientY - graphState.panStartY;
+drawGraph();
+} else {
+var node = getNodeAt(mx, my);
+if (node !== graphState.hovered) {
+graphState.hovered = node;
+drawGraph();
+if (node) {
+$tooltip.style.display = 'block';
+$tooltip.style.left = (mx + 12) + 'px';
+$tooltip.style.top = (my - 8) + 'px';
+$tooltip.querySelector('.gt-title').textContent = cleanTitle(node.title) || '#' + node.id;
+var tc = TYPE_CONFIG[node.type] || { label: node.type || '', ko: '' };
+$tooltip.querySelector('.gt-type').textContent = tc.label + (tc.ko ? ' (' + tc.ko + ')' : '');
+} else {
+$tooltip.style.display = 'none';
+}
+} else if (node) {
+$tooltip.style.left = (mx + 12) + 'px';
+$tooltip.style.top = (my - 8) + 'px';
+}
+}
 });
-
 $canvas.addEventListener('mouseup', function() {
-  graphState.dragging = null;
-  graphState.isPanning = false;
+graphState.dragging = null;
+graphState.isPanning = false;
 });
 $canvas.addEventListener('mouseleave', function() {
-  graphState.dragging = null;
-  graphState.isPanning = false;
-  graphState.hovered = null;
-  $tooltip.style.display = 'none';
-  drawGraph();
+graphState.dragging = null;
+graphState.isPanning = false;
+graphState.hovered = null;
+$tooltip.style.display = 'none';
+drawGraph();
 });
-
 $canvas.addEventListener('wheel', function(e) {
-  e.preventDefault();
-  var delta = e.deltaY > 0 ? 0.9 : 1.1;
-  graphState.scale = Math.max(0.3, Math.min(3, graphState.scale * delta));
-  drawGraph();
+e.preventDefault();
+var delta = e.deltaY > 0 ? 0.9 : 1.1;
+graphState.scale = Math.max(0.3, Math.min(3, graphState.scale * delta));
+drawGraph();
 }, { passive: false });
-
-// Touch support
 $canvas.addEventListener('touchstart', function(e) {
-  if (e.touches.length === 1) {
-    var t = e.touches[0];
-    var rect = $canvas.getBoundingClientRect();
-    var mx = t.clientX - rect.left; var my = t.clientY - rect.top;
-    var node = getNodeAt(mx, my);
-    if (node) {
-      e.preventDefault();
-      graphState.dragging = node;
-      graphState.dragOff = { x: (mx - graphState.panX) / graphState.scale - node.x, y: (my - graphState.panY) / graphState.scale - node.y };
-    } else {
-      graphState.isPanning = true;
-      graphState.panStartX = t.clientX - graphState.panX;
-      graphState.panStartY = t.clientY - graphState.panY;
-    }
-  }
+if (e.touches.length === 1) {
+var t = e.touches[0];
+var rect = $canvas.getBoundingClientRect();
+var mx = t.clientX - rect.left; var my = t.clientY - rect.top;
+var node = getNodeAt(mx, my);
+if (node) {
+e.preventDefault();
+graphState.dragging = node;
+graphState.dragOff = { x: (mx - graphState.panX) / graphState.scale - node.x, y: (my - graphState.panY) / graphState.scale - node.y };
+} else {
+graphState.isPanning = true;
+graphState.panStartX = t.clientX - graphState.panX;
+graphState.panStartY = t.clientY - graphState.panY;
+}
+}
 }, { passive: false });
 $canvas.addEventListener('touchmove', function(e) {
-  if (e.touches.length === 1) {
-    e.preventDefault();
-    var t = e.touches[0];
-    var rect = $canvas.getBoundingClientRect();
-    var mx = t.clientX - rect.left; var my = t.clientY - rect.top;
-    if (graphState.dragging) {
-      graphState.dragging.x = (mx - graphState.panX) / graphState.scale - graphState.dragOff.x;
-      graphState.dragging.y = (my - graphState.panY) / graphState.scale - graphState.dragOff.y;
-      graphState.vx[graphState.dragging.id] = 0;
-      graphState.vy[graphState.dragging.id] = 0;
-      drawGraph();
-    } else if (graphState.isPanning) {
-      graphState.panX = t.clientX - graphState.panStartX;
-      graphState.panY = t.clientY - graphState.panStartY;
-      drawGraph();
-    }
-  }
+if (e.touches.length === 1) {
+e.preventDefault();
+var t = e.touches[0];
+var rect = $canvas.getBoundingClientRect();
+var mx = t.clientX - rect.left; var my = t.clientY - rect.top;
+if (graphState.dragging) {
+graphState.dragging.x = (mx - graphState.panX) / graphState.scale - graphState.dragOff.x;
+graphState.dragging.y = (my - graphState.panY) / graphState.scale - graphState.dragOff.y;
+graphState.vx[graphState.dragging.id] = 0;
+graphState.vy[graphState.dragging.id] = 0;
+drawGraph();
+} else if (graphState.isPanning) {
+graphState.panX = t.clientX - graphState.panStartX;
+graphState.panY = t.clientY - graphState.panStartY;
+drawGraph();
+}
+}
 }, { passive: false });
 $canvas.addEventListener('touchend', function() {
-  graphState.dragging = null; graphState.isPanning = false;
+graphState.dragging = null; graphState.isPanning = false;
 });
-
 window.addEventListener('resize', function() {
-  if (state.activeTab === 'graph' && graphState.nodes.length) {
-    resizeCanvas(); drawGraph();
-  }
+if (state.activeTab === 'graph' && graphState.nodes.length) {
+resizeCanvas(); drawGraph();
+}
 });
-
-/* ── Fullscreen graph ── */
 document.getElementById('graphFullscreen').onclick = function() {
-  var gv = document.getElementById('graphView');
-  gv.classList.toggle('fullscreen');
-  this.textContent = gv.classList.contains('fullscreen') ? '✕' : '⛶';
-  resizeCanvas();
-  if (graphState.nodes.length) initGraph(graphState.nodes, graphState.edges);
+var gv = document.getElementById('graphView');
+gv.classList.toggle('fullscreen');
+this.textContent = gv.classList.contains('fullscreen') ? '✕' : '⛶';
+resizeCanvas();
+if (graphState.nodes.length) initGraph(graphState.nodes, graphState.edges);
 };
-
-/* ── Event handlers ── */
 var searchTimer = null;
 $searchInput.addEventListener('input', function(e) {
-  clearTimeout(searchTimer);
-  var val = e.target.value;
-  state.searchQuery = val;
-  searchTimer = setTimeout(function() { doSearch(val); }, 300);
+clearTimeout(searchTimer);
+var val = e.target.value;
+state.searchQuery = val;
+searchTimer = setTimeout(function() { doSearch(val); }, 300);
 });
-
 $searchInput.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    this.value = '';
-    state.searchQuery = '';
-    if (state.activeTab === 'search') switchTab('timeline');
-  }
+if (e.key === 'Escape') {
+this.value = '';
+state.searchQuery = '';
+if (state.activeTab === 'search') switchTab('timeline');
+}
 });
-
 $projectFilter.addEventListener('change', function(e) {
-  state.currentProject = e.target.value;
-  loadMemories();
-  if (state.activeTab === 'graph') loadGraph();
+state.currentProject = e.target.value;
+loadMemories();
+if (state.activeTab === 'graph') loadGraph();
 });
-
 $themeToggle.addEventListener('click', toggleTheme);
 $loadMoreBtn.addEventListener('click', function() { loadMemories(); });
-
 tabBtns.forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    switchTab(btn.getAttribute('data-tab'));
-  });
+btn.addEventListener('click', function() {
+switchTab(btn.getAttribute('data-tab'));
 });
-
+});
 window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', function(e) {
-  if (!localStorage.getItem('fireauto-theme')) setTheme(e.matches ? 'dark' : 'light');
+if (!localStorage.getItem('fireauto-theme')) setTheme(e.matches ? 'dark' : 'light');
 });
-
-/* ── Init ── */
 detectTheme();
 showLoading();
 connectSSE();
+loadProject();
 loadMemories();
 loadStats();
-
 })();
 </script>
 </body>
