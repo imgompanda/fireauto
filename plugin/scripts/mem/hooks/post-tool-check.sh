@@ -6,7 +6,7 @@ WORKER_URL="http://localhost:37888"
 curl -sf "$WORKER_URL/api/health" > /dev/null 2>&1 || exit 0
 
 PROJECT=$(basename "$(pwd)")
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")}"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")")}"
 
 # CLAUDE.md 80줄 체크 (프로젝트 로컬 + 글로벌 둘 다)
 for CLAUDE_MD in ".claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"; do

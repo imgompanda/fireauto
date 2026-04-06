@@ -4,7 +4,7 @@
 
 WORKER_URL="http://localhost:37888"
 MEM_DIR="$HOME/.fireauto-mem"
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(realpath "$0")")")}"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")")}"
 
 # Worker 헬스 체크
 if ! curl -sf "$WORKER_URL/api/health" > /dev/null 2>&1; then
