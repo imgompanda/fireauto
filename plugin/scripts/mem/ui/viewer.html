@@ -152,8 +152,10 @@ a:hover{text-decoration:underline}
 .wiki-content{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px}
 #wikiPageTitle{font-size:1.125rem;font-weight:700;margin-bottom:12px}
 #wikiPageContent{font-size:.875rem;line-height:1.7;white-space:pre-wrap;color:var(--text-secondary)}
-.skills-section,.mistakes-section{margin-bottom:24px}
-.skills-section h3,.mistakes-section h3{font-size:.875rem;color:var(--text-secondary);margin-bottom:12px}
+.skills-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.skills-section,.mistakes-section{min-height:200px}
+.skills-section h3,.mistakes-section h3{font-size:.875rem;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+@media(max-width:768px){.skills-layout{grid-template-columns:1fr}}
 .skill-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;box-shadow:var(--shadow)}
 .skill-cat-header{font-size:.75rem;font-weight:700;color:var(--accent);letter-spacing:.5px;margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
 .skill-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
@@ -164,7 +166,8 @@ a:hover{text-decoration:underline}
 .skill-card-meta{font-size:.6875rem;color:var(--text-tertiary);margin-top:6px;display:flex;gap:12px}
 .mistake-card{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid #ef4444;border-radius:8px;padding:12px 16px;margin-bottom:8px}
 .mistake-sev-header{font-size:.75rem;font-weight:700;letter-spacing:.5px;margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
-.mistake-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.mistake-card-header{display:flex;align-items:flex-start;gap:8px}
+.mistake-check{flex-shrink:0;width:16px;height:16px;margin-top:2px;cursor:pointer;accent-color:var(--accent)}
 .mistake-card-desc{font-size:.875rem;font-weight:500;flex:1}
 .mistake-card-time{font-size:.6875rem;color:var(--text-tertiary);white-space:nowrap;flex-shrink:0}
 .mistake-card-cause{font-size:.75rem;color:var(--text-secondary);margin:4px 0}
@@ -268,6 +271,7 @@ a:hover{text-decoration:underline}
   </section>
   <!-- Skills View -->
   <section class="tab-content" id="skillsView" role="tabpanel" aria-labelledby="tabSkills" style="display:none">
+    <div class="skills-layout">
     <div class="skills-section">
       <h3>🔧 저장된 스킬</h3>
       <div id="skillsList"></div>
@@ -276,6 +280,7 @@ a:hover{text-decoration:underline}
       <h3>⚠️ 실수 기록</h3>
       <div id="mistakesList"></div>
     </div>
+    </div><!-- skills-layout -->
   </section>
   <!-- Search View -->
   <section class="tab-content" id="searchView" role="tabpanel" aria-labelledby="tabSearch">
@@ -1015,7 +1020,17 @@ sevOrder.forEach(function(sev) {
   groups[sev].forEach(function(m) {
     var card = el('div','mistake-card');
     card.style.borderLeftColor = conf.color;
+    // 체크박스 + 헤더
     var header = el('div','mistake-card-header');
+    var chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.className = 'mistake-check';
+    chk.title = '해결됨';
+    chk.onchange = function() {
+      card.style.opacity = chk.checked ? '0.4' : '1';
+      card.style.textDecoration = chk.checked ? 'line-through' : 'none';
+    };
+    header.appendChild(chk);
     header.appendChild(el('span','mistake-card-desc', m.description));
     var time = el('span','mistake-card-time');
     time.textContent = m.created_at_epoch ? formatDateTime(m.created_at_epoch) : '';
