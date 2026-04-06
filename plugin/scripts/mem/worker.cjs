@@ -208,6 +208,17 @@ async function startServer() {
       });
       res.json({ id });
 
+      // 1.5 관계 추론 (SDK와 별개로 즉시 실행)
+      try {
+        const rels = loadRelations();
+        if (rels && rels.inferRelations) {
+          const inferred = rels.inferRelations(db, id);
+          if (inferred.length > 0) {
+            console.error('[fireauto-mem] 관계 ' + inferred.length + '건 추론 (메모리 #' + id + ')');
+          }
+        }
+      } catch (e) { console.error('[fireauto-mem] 관계 추론 에러:', e.message); }
+
       // 2. 비동기로 SDK Agent에 구조화 요청 (fire-and-forget)
       try {
         const sdkAgent = loadSdkAgent();

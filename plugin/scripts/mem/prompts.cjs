@@ -35,7 +35,7 @@ function buildInitPrompt(project, sessionId, userPrompt) {
   </facts>
   <narrative>맥락과 이유 설명</narrative>
   <concepts>
-    <concept>관련 개념 카테고리</concept>
+    <concept>관련 기술/도메인 키워드 (예: 인증, 토큰, API, 에러핸들링, DB, 캐시 등)</concept>
   </concepts>
   <files_modified>
     <file>파일 경로</file>

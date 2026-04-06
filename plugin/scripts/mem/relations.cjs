@@ -217,7 +217,38 @@ function inferRelations(db, newMemoryId) {
     }
   }
 
-  // 3. led_to: 같은 세션, 5분(300,000ms) 이내 이전 메모리
+  // 3. content_match: 제목/내용에 공통 키워드가 있는 메모리
+  try {
+    // 새 메모리의 제목에서 핵심 키워드 추출 (2글자 이상 단어)
+    const titleWords = (newMem.title || '').split(/[\s,.:;!?(){}[\]"'`/\\|+\-=<>]+/)
+      .filter(w => w.length >= 2)
+      .filter(w => !/^(the|and|for|with|from|that|this|was|are|were|has|have|had|not|but|can|will|its|you|all|한|을|를|이|가|의|에|로|은|는|도|다)$/i.test(w));
+
+    for (const word of titleWords.slice(0, 5)) { // 최대 5개 키워드
+      const matches = rowsToObjects(db.exec(
+        `SELECT id FROM memories WHERE id != ? AND (title LIKE ? OR content LIKE ?) LIMIT 5`,
+        [newMemoryId, `%${word}%`, `%${word}%`]
+      ));
+      for (const match of matches) {
+        const key = `${newMemoryId}-${match.id}-related`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const id = insertRelationSafe(db, {
+          source_id: newMemoryId,
+          target_id: match.id,
+          relation_type: 'related',
+          confidence: 0.5,
+        });
+        if (id) {
+          relations.push({ source_id: newMemoryId, target_id: match.id, relation_type: 'related', confidence: 0.5 });
+        }
+      }
+    }
+  } catch {
+    // content_match 실패 시 무시
+  }
+
+  // 4. led_to: 같은 세션, 5분(300,000ms) 이내 이전 메모리
   if (newMem.session_id && newMem.created_at_epoch) {
     try {
       const fiveMinMs = 300000;
