@@ -193,11 +193,27 @@ fireauto 플러그인의 스킬들이 특정 상황에서 자동으로 활성화
 - 웹 프로젝트에서 배포 전이나 기능 완성 시 SEO 관련 이슈가 없는지 fireauto-seo-guide 스킬을 참고할 것.
 - 인증, API, 파일 업로드 등 보안 민감 코드를 수정할 때 fireauto-secure-guide 스킬을 참고할 것.
 
-### 코드 탐색
-- 코드 탐색 시 LSP 도구를 Grep/Glob보다 먼저 사용할 것 (fireauto-lsp-guide 참고).
-
 ### UI 개발
 - DaisyUI 컴포넌트를 사용하거나 UI를 구축할 때 fireauto-ui-guide 스킬을 참고할 것.
+
+### 프로젝트 하네스 (자동 진행)
+- 세션 시작 시 project-status MCP로 현재 프로젝트 상태를 확인하고, 사용자에게 "오늘 할 일"을 자동으로 알려줄 것.
+- 태스크를 완료하면 project-task-update MCP로 상태를 변경하고, project-next MCP로 다음 태스크를 자동 제안할 것.
+- 마일스톤의 모든 태스크가 완료되면 자동으로 다음 마일스톤 시작을 제안할 것.
+
+### 자기 학습 (실수 → 규칙 → 스킬)
+- 사용자가 수정을 요청하면 mistake-log MCP로 실수를 기록하고, wiki-write로 gotchas.md를 업데이트할 것.
+- 같은 패턴이 3회 이상 반복되면 skill-save MCP로 스킬을 생성할 것.
+- 실수 기반 규칙은 즉시 CLAUDE.md에 추가할 것 (80줄 이내 유지).
+
+### 복기 (세션 종료 시)
+- 세션이 끝나기 전에 retrospect MCP로 복기를 실행할 것.
+- 복기에서 발견된 패턴은 memory-save로, 실수는 mistake-log로 기록할 것.
+- 복기 결과를 바탕으로 CLAUDE.md 또는 프로젝트 스킬을 업데이트할 것.
+
+### Wiki 관리
+- 중요한 지식은 wiki-write MCP로 해당 페이지에 기록할 것 (patterns/gotchas/decisions/skills-catalog).
+- CLAUDE.md가 80줄을 넘으면 오래된 규칙을 wiki로 이동할 것.
 ```
 
 ### 적용 위치:
