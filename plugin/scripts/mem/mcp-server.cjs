@@ -664,3 +664,11 @@ main().catch((err) => {
   console.error(LOG_PREFIX, 'Fatal:', err);
   process.exit(1);
 });
+
+// 부모 프로세스 heartbeat — 좀비 방지
+const parentPid = process.ppid;
+const heartbeat = setInterval(() => {
+  try { process.kill(parentPid, 0); }
+  catch { clearInterval(heartbeat); process.exit(0); }
+}, 30000);
+heartbeat.unref();

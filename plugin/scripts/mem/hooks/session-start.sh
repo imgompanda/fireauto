@@ -10,6 +10,10 @@ PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(dirname "$(dirname "$
 if ! curl -sf "$WORKER_URL/api/health" > /dev/null 2>&1; then
   echo "[fireauto-mem] Worker 시작 중..." >&2
 
+  # 포트 37888 사용 중인 좀비 프로세스 정리
+  lsof -ti:37888 2>/dev/null | xargs kill -9 2>/dev/null
+  sleep 0.5
+
   # node_modules 경로 설정 — PLUGIN_DATA 우선, fallback으로 fireauto-mem
   PLUGIN_DATA_DIR="${CLAUDE_PLUGIN_DATA:-$HOME/.claude/plugins/data/fireauto-imgompanda}"
   NODE_PATH="$PLUGIN_DATA_DIR/node_modules:$MEM_DIR/node_modules"
