@@ -916,6 +916,12 @@ async function startServer() {
           if (sl && sl.addClaudeMdRule) {
             sl.addClaudeMdRule(process.cwd(), '- ⚠️ ' + prevention);
             console.error('[fireauto-mem] CLAUDE.md 규칙 추가: ' + prevention);
+            // 규칙 추가 성공 → 실수 자동 해결
+            try {
+              const { resolveMistake } = loadDbModule();
+              if (resolveMistake) resolveMistake(db, id, 'claude_md_rule');
+              console.error('[fireauto-mem] 실수 #' + id + ' 자동 해결 (CLAUDE.md 규칙)');
+            } catch {}
           }
         } catch (clErr) { console.error('[fireauto-mem] CLAUDE.md 규칙 추가 실패:', clErr.message); }
       }

@@ -1083,11 +1083,13 @@ sevOrder.forEach(function(sev) {
     var chk = document.createElement('input');
     chk.type = 'checkbox';
     chk.className = 'mistake-check';
-    chk.title = '해결됨';
-    chk.onchange = function() {
-      card.style.opacity = chk.checked ? '0.4' : '1';
-      card.style.textDecoration = chk.checked ? 'line-through' : 'none';
-    };
+    chk.disabled = true;  // AI가 해결하면 자동 체크 — 수동 불가
+    chk.title = m.resolved ? '해결됨 (' + (m.resolved_by||'') + ')' : '미해결';
+    if (m.resolved) {
+      chk.checked = true;
+      card.style.opacity = '0.4';
+      card.classList.add('resolved');
+    }
     header.appendChild(chk);
     header.appendChild(el('span','mistake-card-desc', m.description));
     var time = el('span','mistake-card-time');

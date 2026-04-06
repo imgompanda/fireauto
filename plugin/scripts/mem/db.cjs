@@ -188,6 +188,9 @@ function migrateV2(db) {
     { table: 'memories', column: 'concepts', type: "TEXT DEFAULT '[]'" },
     { table: 'summaries', column: 'investigated', type: 'TEXT' },
     { table: 'memories', column: 'task_id', type: 'INTEGER' },
+    { table: 'mistakes', column: 'resolved', type: 'INTEGER DEFAULT 0' },
+    { table: 'mistakes', column: 'resolved_by', type: 'TEXT' },
+    { table: 'mistakes', column: 'resolved_at_epoch', type: 'INTEGER' },
   ];
   for (const { table, column, type } of newColumns) {
     try {
@@ -1186,6 +1189,20 @@ function searchMistakes(db, { project, query, limit = 20 } = {}) {
  * @param {number} [params.limit=20] - 결과 제한
  * @returns {Object[]}
  */
+/**
+ * 실수를 해결됨으로 표시
+ * @param {number} id
+ * @param {string} resolvedBy - 'claude_md_rule' | 'skill_created' | 'wiki_updated' | 'manual'
+ */
+function resolveMistake(db, id, resolvedBy) {
+  try {
+    db.run('UPDATE mistakes SET resolved = 1, resolved_by = ?, resolved_at_epoch = ? WHERE id = ?',
+      [resolvedBy, Date.now(), id]);
+  } catch (err) {
+    console.error('Failed to resolve mistake:', err.message);
+  }
+}
+
 function listMistakes(db, { project, limit = 20 } = {}) {
   try {
     let sql = 'SELECT * FROM mistakes WHERE 1=1';
@@ -1322,4 +1339,5 @@ module.exports = {
   logMistake,
   searchMistakes,
   listMistakes,
+  resolveMistake,
 };
