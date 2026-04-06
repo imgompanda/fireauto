@@ -152,6 +152,48 @@ user-invocable: true
 
 ---
 
+## Step 4: 프로젝트 대시보드 자동 등록
+
+PRD를 저장한 후, **자동으로** 프로젝트 대시보드에 등록해요.
+
+1. PRD의 "구현 로드맵" 또는 "Phase" 섹션에서 마일스톤을 추출해요
+2. 각 마일스톤 안의 작업 항목을 태스크로 분해해요 (1-4시간 단위)
+3. Worker API를 호출해서 DB에 저장해요:
+
+```bash
+curl -X POST http://localhost:37888/api/projects \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "{서비스명}",
+    "description": "{PRD 한 줄 요약}",
+    "prd_path": "docs/prd/{kebab-case}.md",
+    "milestones": [
+      {
+        "title": "Phase 1 - MVP",
+        "description": "{Phase 설명}",
+        "tasks": [
+          {"title": "{태스크1}", "priority": "P0"},
+          {"title": "{태스크2}", "priority": "P1"}
+        ]
+      }
+    ]
+  }'
+```
+
+Worker가 안 돌고 있으면 이 단계를 건너뛰세요.
+
+4. 등록 성공 시 사용자에게 알려줘요:
+
+```
+📊 프로젝트 대시보드에 자동 등록됐어요!
+   마일스톤: {N}개 | 태스크: {N}개
+   대시보드: http://localhost:37888 (프로젝트 탭)
+   
+   /next 로 첫 번째 태스크를 시작할 수 있어요.
+```
+
+---
+
 ## 톤 & 스타일 가이드
 
 - **언어**: 한국어 (기술 용어는 영어 병기)
