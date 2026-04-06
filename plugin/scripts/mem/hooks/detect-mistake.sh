@@ -29,7 +29,7 @@ echo "$USER_MSG" | node -e "
   process.stdin.on('data',c=>d+=c);
   process.stdin.on('end',()=>{
     const msg=d.toLowerCase();
-    const patterns=['아니','그거 아니','잘못','틀렸','다시 해','그게 아니라','wrong','incorrect','not that','undo'];
+    const patterns=['아니','그거 아니','잘못','틀렸','다시','그게 아니라','실수','에러','오류','안돼','안되','동작 안','작동 안','버그','wrong','incorrect','not that','undo','error','bug','broken'];
     if(patterns.some(p=>msg.includes(p))){
       // 실수 감지 → Worker에 기록
       const http=require('http');
