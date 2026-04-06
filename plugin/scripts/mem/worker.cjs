@@ -741,8 +741,39 @@ async function startServer() {
     try {
       const { name, description, content, category } = req.body;
       if (!name || !content) return res.status(400).json({ error: 'Missing required fields: name, content' });
+
+      // 1. DB에 저장
       const { saveSkill: dbSaveSkill } = loadDbModule();
       const id = dbSaveSkill(db, { name, description, content, category });
+
+      // 2. 글로벌 스킬 파일도 생성 (~/.claude/skills/{name}/SKILL.md)
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const os = require('os');
+        const safeName = name.toLowerCase().replace(/[^a-z0-9가-힣\-]/g, '-').replace(/-+/g, '-');
+        const skillDir = path.join(os.homedir(), '.claude', 'skills', safeName);
+        if (!fs.existsSync(skillDir)) fs.mkdirSync(skillDir, { recursive: true });
+        const skillContent = [
+          '---',
+          'name: ' + safeName,
+          'description: >',
+          '  ' + (description || name) + '.',
+          '  "' + name + '", "' + (category || '') + '" 등에 트리거.',
+          '---',
+          '',
+          '# ' + name,
+          '',
+          description ? description + '\n' : '',
+          content,
+          '',
+        ].join('\n');
+        fs.writeFileSync(path.join(skillDir, 'SKILL.md'), skillContent, 'utf8');
+        console.error('[fireauto-mem] 스킬 파일 생성: ~/.claude/skills/' + safeName + '/SKILL.md');
+      } catch (fileErr) {
+        console.error('[fireauto-mem] 스킬 파일 생성 실패 (DB 저장은 성공):', fileErr.message);
+      }
+
       broadcast({ event: 'skill_saved', data: { id, name, category } });
       res.json({ id });
     } catch (err) {

@@ -8,22 +8,23 @@ curl -sf "$WORKER_URL/api/health" > /dev/null 2>&1 || exit 0
 PROJECT=$(basename "$(pwd)")
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")}"
 
-# CLAUDE.md 80줄 체크 (프로젝트 로컬)
-CLAUDE_MD=".claude/CLAUDE.md"
-if [ -f "$CLAUDE_MD" ]; then
-  LINE_COUNT=$(wc -l < "$CLAUDE_MD")
-  if [ "$LINE_COUNT" -gt 80 ]; then
-    # trimClaudeMd 실행
-    NODE_PATH="${CLAUDE_PLUGIN_DATA:-$HOME/.fireauto-mem}/node_modules" \
-    node -e "
-      try{
-        const gen=require('$PLUGIN_ROOT/scripts/mem/claude-md-generator.cjs');
-        gen.trimClaudeMd('$(pwd)',80);
-        console.error('[fireauto] CLAUDE.md ${LINE_COUNT}줄 → 80줄로 트리밍 (초과분 wiki로 이동)');
-      }catch(e){console.error('[fireauto] trim 실패:',e.message);}
-    " 2>&2
+# CLAUDE.md 80줄 체크 (프로젝트 로컬 + 글로벌 둘 다)
+for CLAUDE_MD in ".claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"; do
+  if [ -f "$CLAUDE_MD" ]; then
+    LINE_COUNT=$(wc -l < "$CLAUDE_MD")
+    if [ "$LINE_COUNT" -gt 80 ]; then
+      TARGET_DIR=$(dirname "$CLAUDE_MD")
+      NODE_PATH="${CLAUDE_PLUGIN_DATA:-$HOME/.fireauto-mem}/node_modules" \
+      node -e "
+        try{
+          const gen=require('$PLUGIN_ROOT/scripts/mem/claude-md-generator.cjs');
+          gen.trimClaudeMd('$TARGET_DIR/..',80);
+          console.error('[fireauto] $CLAUDE_MD ${LINE_COUNT}줄 → 80줄 트리밍');
+        }catch(e){console.error('[fireauto] trim 실패:',e.message);}
+      " 2>&2
+    fi
   fi
-fi
+done
 
 # 반복 패턴 감지 (3번째 도구 사용마다 체크 — 3회 이상이면 반복으로 간주)
 COUNTER_FILE="/tmp/fireauto-tool-counter"
