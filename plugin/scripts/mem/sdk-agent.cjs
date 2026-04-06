@@ -198,12 +198,22 @@ async function callHaiku(promptText) {
   const timer = setTimeout(() => abortController.abort(), QUERY_TIMEOUT_MS);
 
   try {
-    /** @type {AsyncGenerator} */
+    // Claude-mem pattern: use a promise-based message generator that waits
+    // for the assistant's response before ending the generator.
+    // This prevents the session from closing before Claude responds.
+    let resolveWaiting;
+    const waitingForResponse = new Promise((resolve) => { resolveWaiting = resolve; });
+    let gotResponse = false;
+
     async function* messageGenerator() {
+      // Yield the user prompt
       yield {
         type: 'user',
         message: { role: 'user', content: promptText },
       };
+      // Wait until we've received the assistant's response
+      // before letting the generator end (which closes the session)
+      await waitingForResponse;
     }
 
     const queryResult = queryFn({
@@ -233,8 +243,16 @@ async function callHaiku(promptText) {
           tokens.input += message.message.usage.input_tokens || 0;
           tokens.output += message.message.usage.output_tokens || 0;
         }
+        // Signal that we got a response — generator can end now
+        if (!gotResponse) {
+          gotResponse = true;
+          resolveWaiting();
+        }
       }
     }
+
+    // In case no assistant message was received, unblock the generator
+    if (!gotResponse) resolveWaiting();
 
     return { text: responseText, tokens };
   } finally {
@@ -265,7 +283,12 @@ async function processObservation(observation) {
     const inputStr = typeof tool_input === 'string' ? tool_input : JSON.stringify(tool_input);
     const outputStr = typeof tool_output === 'string' ? tool_output : JSON.stringify(tool_output);
 
-    const prompt = prompts.buildObservationPrompt(tool_name, inputStr, outputStr);
+    // Init prompt (XML 응답 형식 지시) + Observation prompt (실제 데이터)를 합쳐서 전송
+    const initPrompt = prompts.buildInitPrompt
+      ? prompts.buildInitPrompt(observation.project || 'unknown', observation.session_id || '', '')
+      : '';
+    const obsPrompt = prompts.buildObservationPrompt(tool_name, inputStr, outputStr);
+    const prompt = initPrompt + '\n\n' + obsPrompt;
     const { text, tokens } = await callHaiku(prompt);
 
     if (!text || !text.trim()) {
