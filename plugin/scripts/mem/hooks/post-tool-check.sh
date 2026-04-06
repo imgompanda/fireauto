@@ -25,14 +25,14 @@ if [ -f "$CLAUDE_MD" ]; then
   fi
 fi
 
-# 반복 패턴 감지 (10번째 도구 사용마다 체크 — 매번은 비효율)
-COUNTER_FILE="/tmp/fireauto-tool-counter-$$"
+# 반복 패턴 감지 (3번째 도구 사용마다 체크 — 3회 이상이면 반복으로 간주)
+COUNTER_FILE="/tmp/fireauto-tool-counter"
 COUNT=0
 [ -f "$COUNTER_FILE" ] && COUNT=$(cat "$COUNTER_FILE")
 COUNT=$((COUNT + 1))
 echo "$COUNT" > "$COUNTER_FILE"
 
-if [ $((COUNT % 10)) -eq 0 ]; then
+if [ $((COUNT % 3)) -eq 0 ]; then
   NODE_PATH="${CLAUDE_PLUGIN_DATA:-$HOME/.fireauto-mem}/node_modules" \
   node -e "
     try{

@@ -143,6 +143,27 @@ a:hover{text-decoration:underline}
 .kanban-card-priority.p3{background:rgba(107,114,128,.15);color:#6b7280}
 .kanban-card-milestone{font-size:10px;color:var(--text-tertiary);background:var(--bg-secondary);padding:1px 6px;border-radius:3px}
 .kanban-empty{text-align:center;padding:24px 8px;color:var(--text-tertiary);font-size:.75rem}
+.wiki-layout{display:grid;grid-template-columns:200px 1fr;gap:16px;min-height:400px}
+.wiki-sidebar{background:var(--bg-secondary);border-radius:8px;padding:12px}
+.wiki-sidebar h3{font-size:.875rem;margin-bottom:8px;color:var(--text-secondary)}
+.wiki-page-item{padding:8px;border-radius:6px;cursor:pointer;font-size:.8125rem;margin-bottom:2px}
+.wiki-page-item:hover{background:var(--bg-card)}
+.wiki-page-item.active{background:var(--accent-dim);color:var(--accent);font-weight:600}
+.wiki-content{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px}
+#wikiPageTitle{font-size:1.125rem;font-weight:700;margin-bottom:12px}
+#wikiPageContent{font-size:.875rem;line-height:1.7;white-space:pre-wrap;color:var(--text-secondary)}
+.skills-section,.mistakes-section{margin-bottom:24px}
+.skills-section h3,.mistakes-section h3{font-size:.875rem;color:var(--text-secondary);margin-bottom:12px}
+.skill-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;box-shadow:var(--shadow)}
+.skill-card-name{font-weight:600;font-size:.875rem;margin-bottom:4px}
+.skill-card-desc{font-size:.75rem;color:var(--text-secondary)}
+.skill-card-meta{font-size:.6875rem;color:var(--text-tertiary);margin-top:6px;display:flex;gap:12px}
+.mistake-card{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid #ef4444;border-radius:8px;padding:12px 16px;margin-bottom:8px}
+.mistake-card-desc{font-size:.875rem;font-weight:500;margin-bottom:4px}
+.mistake-card-fix{font-size:.75rem;color:var(--success)}
+.mistake-card-prevention{font-size:.75rem;color:var(--text-secondary);font-style:italic}
+.mistake-card-meta{font-size:.6875rem;color:var(--text-tertiary);margin-top:4px}
+.empty-section{text-align:center;padding:24px;color:var(--text-tertiary);font-size:.8125rem}
 .search-hl{background:var(--accent-dim);border-radius:2px;padding:0 2px}
 .load-more{text-align:center;padding:16px}
 .load-more-btn{background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 24px;font-size:.875rem;cursor:pointer;transition:background .2s,border-color .2s;font-family:var(--font)}
@@ -155,6 +176,7 @@ a:hover{text-decoration:underline}
 .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:8px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:768px){
+  .wiki-layout{grid-template-columns:1fr}
   .project-dashboard{grid-template-columns:1fr}
   .project-overview{flex-direction:column}
   .project-overview-progress{width:100%;text-align:left;display:flex;align-items:center;gap:12px}
@@ -188,6 +210,8 @@ a:hover{text-decoration:underline}
   <nav class="header-tabs" role="tablist" aria-label="뷰 전환">
     <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="projectView" id="tabProject" data-tab="project">프로젝트</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="timelineView" id="tabTimeline" data-tab="timeline">타임라인</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="wikiView" id="tabWiki" data-tab="wiki">Wiki</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="skillsView" id="tabSkills" data-tab="skills">스킬</button>
     <button class="tab-btn" role="tab" aria-selected="false" aria-controls="searchView" id="tabSearch" data-tab="search">검색</button>
   </nav>
   <div class="header-actions">
@@ -218,6 +242,30 @@ a:hover{text-decoration:underline}
     <div id="feed" class="feed" role="feed" aria-label="지식 피드"></div>
     <div class="load-more" id="loadMoreWrap" style="display:none">
       <button class="load-more-btn" id="loadMoreBtn">더 보기</button>
+    </div>
+  </section>
+  <!-- Wiki View -->
+  <section class="tab-content" id="wikiView" role="tabpanel" aria-labelledby="tabWiki" style="display:none">
+    <div class="wiki-layout">
+      <div class="wiki-sidebar">
+        <h3>📚 Wiki 페이지</h3>
+        <div id="wikiPageList"></div>
+      </div>
+      <div class="wiki-content">
+        <div id="wikiPageTitle"></div>
+        <div id="wikiPageContent"></div>
+      </div>
+    </div>
+  </section>
+  <!-- Skills View -->
+  <section class="tab-content" id="skillsView" role="tabpanel" aria-labelledby="tabSkills" style="display:none">
+    <div class="skills-section">
+      <h3>🔧 저장된 스킬</h3>
+      <div id="skillsList"></div>
+    </div>
+    <div class="mistakes-section">
+      <h3>⚠️ 실수 기록</h3>
+      <div id="mistakesList"></div>
     </div>
   </section>
   <!-- Search View -->
@@ -339,14 +387,18 @@ b.classList.toggle('active', active);
 b.setAttribute('aria-selected', active ? 'true' : 'false');
 });
 tabContents.forEach(function(c) {
-var map = { project: 'projectView', timeline: 'timelineView', search: 'searchView' };
+var map = { project: 'projectView', timeline: 'timelineView', wiki: 'wikiView', skills: 'skillsView', search: 'searchView' };
 c.classList.toggle('active', c.id === map[tab]);
+if (c.id === map[tab]) c.style.display = '';
+else c.style.display = 'none';
 });
 var $mainEl = document.querySelector('.main');
 if ($mainEl) {
   $mainEl.style.maxWidth = tab === 'project' ? 'none' : '760px';
 }
 if (tab === 'project') loadProject();
+if (tab === 'wiki') loadWiki();
+if (tab === 'skills') loadSkills();
 if (tab === 'search') $searchInput.focus();
 }
 var eventSource = null;
@@ -840,6 +892,80 @@ kanban.appendChild(colDiv);
 });
 $projectDashboard.appendChild(kanban);
 }
+}
+function loadWiki() {
+fetchJSON('/api/wiki/index').then(function(d) {
+var pages = d.pages || [];
+var list = document.getElementById('wikiPageList');
+clearEl(list);
+if (!pages.length) {
+list.textContent = 'Wiki 페이지가 없어요. /init으로 프로젝트를 시작하세요.';
+return;
+}
+pages.forEach(function(p) {
+var item = el('div', 'wiki-page-item', p);
+item.onclick = function() {
+document.querySelectorAll('.wiki-page-item').forEach(function(x){x.classList.remove('active')});
+item.classList.add('active');
+loadWikiPage(p);
+};
+list.appendChild(item);
+});
+if (pages.length > 0) {
+list.children[0].classList.add('active');
+loadWikiPage(pages[0]);
+}
+});
+}
+function loadWikiPage(pageName) {
+fetchJSON('/api/wiki/' + encodeURIComponent(pageName)).then(function(d) {
+document.getElementById('wikiPageTitle').textContent = pageName;
+document.getElementById('wikiPageContent').textContent = d.content || '내용 없음';
+});
+}
+function loadSkills() {
+fetchJSON('/api/skills').then(function(d) {
+var skills = d.skills || [];
+var list = document.getElementById('skillsList');
+clearEl(list);
+if (!skills.length) {
+var empty = el('div','empty-section','아직 저장된 스킬이 없어요. 작업하다 보면 자동으로 생성돼요.');
+list.appendChild(empty);
+return;
+}
+skills.forEach(function(s) {
+var card = el('div','skill-card');
+card.appendChild(el('div','skill-card-name', s.name));
+if(s.description) card.appendChild(el('div','skill-card-desc', s.description));
+var meta = el('div','skill-card-meta');
+if(s.category) meta.appendChild(el('span','', '📂 '+s.category));
+meta.appendChild(el('span','', '🔄 사용 '+s.usage_count+'회'));
+if(s.source_project) meta.appendChild(el('span','', '📦 '+s.source_project));
+card.appendChild(meta);
+list.appendChild(card);
+});
+});
+fetchJSON('/api/mistakes?limit=20').then(function(d) {
+var mistakes = d.mistakes || [];
+var list = document.getElementById('mistakesList');
+clearEl(list);
+if (!mistakes.length) {
+var empty = el('div','empty-section','실수 기록이 없어요.');
+list.appendChild(empty);
+return;
+}
+mistakes.forEach(function(m) {
+var card = el('div','mistake-card');
+card.appendChild(el('div','mistake-card-desc', m.description));
+if(m.fix) card.appendChild(el('div','mistake-card-fix', '→ 수정: '+m.fix));
+if(m.prevention) card.appendChild(el('div','mistake-card-prevention', '→ 방지: '+m.prevention));
+var meta = el('div','mistake-card-meta');
+meta.appendChild(el('span','', m.severity || 'medium'));
+if(m.project) meta.appendChild(el('span','', m.project));
+card.appendChild(meta);
+list.appendChild(card);
+});
+});
 }
 var searchTimer = null;
 $searchInput.addEventListener('input', function(e) {
