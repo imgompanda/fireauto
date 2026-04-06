@@ -712,7 +712,8 @@ function renderProjDash(db){
 $emptyProject.style.display='none';$projectDashboard.style.display='';clearEl($projectDashboard);
 var p=db.project||db;
 var ms=db.milestones||[];
-var pct=db.overall_progress!=null?db.overall_progress:(db.percent||0);
+var rawPct=db.overall_progress;
+var pct=typeof rawPct==='object'&&rawPct?rawPct.progress_pct||0:rawPct||db.percent||0;
 var hd=el('div','project-header');
 hd.appendChild(el('h2','project-name',p.name||'프로젝트'));
 var mt=el('div','project-meta');
