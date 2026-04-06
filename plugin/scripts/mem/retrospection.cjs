@@ -133,9 +133,9 @@ function formatRetrospect(report) {
 function saveRetrospectToWiki(projectRoot, report) {
   try {
     const wikiMgr = require('./wiki-manager.cjs');
-    const existing = wikiMgr.readPage(projectRoot, 'retrospective') || '# 복기 기록\n';
+    const existing = wikiMgr.readPage('retrospective') || '# 복기 기록\n';
     const entry = '\n## ' + report.timestamp.split('T')[0] + '\n' + formatRetrospect(report) + '\n';
-    wikiMgr.writePage(projectRoot, 'retrospective', existing + entry);
+    wikiMgr.writePage('retrospective', existing + entry);
   } catch {
     // wiki-manager가 없으면 조용히 무시
   }
