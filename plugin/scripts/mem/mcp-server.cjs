@@ -433,6 +433,227 @@ async function main() {
     },
   );
 
+  // ── wiki-read ──────────────────────────────────────────────
+  server.tool(
+    'wiki-read',
+    '프로젝트 Wiki 페이지를 읽습니다.',
+    {
+      page: z.string().describe('페이지 이름 (예: patterns, gotchas, decisions)'),
+    },
+    async ({ page }) => {
+      return safeCall(async () => {
+        const result = await callWorker('GET', '/api/wiki/' + encodeURIComponent(page));
+
+        if (result.error) {
+          return { content: [{ type: 'text', text: `Wiki 읽기 실패: ${result.error}` }], isError: true };
+        }
+
+        const text = result.content || result.body || JSON.stringify(result, null, 2);
+        return { content: [{ type: 'text', text: `## Wiki: ${page}\n\n${text}` }] };
+      });
+    },
+  );
+
+  // ── wiki-write ────────────────────────────────────────────
+  server.tool(
+    'wiki-write',
+    'Wiki 페이지를 생성하거나 업데이트합니다.',
+    {
+      page: z.string().describe('페이지 이름'),
+      content: z.string().describe('페이지 내용 (Markdown)'),
+    },
+    async ({ page, content }) => {
+      return safeCall(async () => {
+        const result = await callWorker('POST', '/api/wiki', { page, content });
+
+        if (result.error) {
+          return { content: [{ type: 'text', text: `Wiki 저장 실패: ${result.error}` }], isError: true };
+        }
+
+        return { content: [{ type: 'text', text: `Wiki 페이지 "${page}" 저장 완료.` }] };
+      });
+    },
+  );
+
+  // ── wiki-search ───────────────────────────────────────────
+  server.tool(
+    'wiki-search',
+    'Wiki 내에서 키워드로 검색합니다.',
+    {
+      query: z.string().describe('검색 키워드'),
+    },
+    async ({ query }) => {
+      return safeCall(async () => {
+        const result = await callWorker('GET', '/api/wiki/search' + qs({ q: query }));
+
+        if (!result.results || result.results.length === 0) {
+          return { content: [{ type: 'text', text: `Wiki에서 "${query}"에 대한 검색 결과가 없습니다.` }] };
+        }
+
+        const lines = result.results.map((r) =>
+          `- **${r.page || r.title || r.name}**${r.snippet ? ': ' + r.snippet : ''}`,
+        );
+        const text = `Wiki 검색 결과 ${result.results.length}건:\n\n` + lines.join('\n');
+        return { content: [{ type: 'text', text }] };
+      });
+    },
+  );
+
+  // ── wiki-index ────────────────────────────────────────────
+  server.tool(
+    'wiki-index',
+    'Wiki 전체 페이지 목록을 조회합니다.',
+    {},
+    async () => {
+      return safeCall(async () => {
+        const result = await callWorker('GET', '/api/wiki/index');
+
+        if (!result.pages || result.pages.length === 0) {
+          return { content: [{ type: 'text', text: 'Wiki 페이지가 없습니다.' }] };
+        }
+
+        const lines = result.pages.map((p) => {
+          const name = typeof p === 'string' ? p : (p.page || p.name || p.title);
+          const updated = (typeof p === 'object' && p.updated_at) ? ` (${p.updated_at})` : '';
+          return `- ${name}${updated}`;
+        });
+        const text = `Wiki 페이지 목록 (${result.pages.length}건):\n\n` + lines.join('\n');
+        return { content: [{ type: 'text', text }] };
+      });
+    },
+  );
+
+  // ── skill-save ────────────────────────────────────────────
+  server.tool(
+    'skill-save',
+    '재사용 가능한 스킬을 DB에 저장합니다.',
+    {
+      name: z.string().describe('스킬 이름'),
+      description: z.string().describe('스킬 설명'),
+      content: z.string().describe('스킬 내용 (프롬프트, 코드 등)'),
+      category: z.string().describe('카테고리 (예: coding, debugging, testing, devops)'),
+    },
+    async ({ name, description, content, category }) => {
+      return safeCall(async () => {
+        const result = await callWorker('POST', '/api/skills', { name, description, content, category });
+
+        if (result.error) {
+          return { content: [{ type: 'text', text: `스킬 저장 실패: ${result.error}` }], isError: true };
+        }
+
+        return { content: [{ type: 'text', text: `스킬 "${name}" 저장 완료 (ID: ${result.id || '-'}).` }] };
+      });
+    },
+  );
+
+  // ── skill-search ──────────────────────────────────────────
+  server.tool(
+    'skill-search',
+    'DB에서 관련 스킬을 검색합니다.',
+    {
+      query: z.string().describe('검색 키워드'),
+      category: z.string().optional().describe('카테고리 필터'),
+    },
+    async ({ query, category }) => {
+      return safeCall(async () => {
+        const result = await callWorker('GET', '/api/skills' + qs({ q: query, category }));
+
+        if (!result.skills || result.skills.length === 0) {
+          return { content: [{ type: 'text', text: `"${query}"에 해당하는 스킬이 없습니다.` }] };
+        }
+
+        const lines = result.skills.map((s) =>
+          `- **${s.name}** [${s.category || '-'}]: ${s.description || ''}`,
+        );
+        const text = `스킬 검색 결과 ${result.skills.length}건:\n\n` + lines.join('\n');
+        return { content: [{ type: 'text', text }] };
+      });
+    },
+  );
+
+  // ── mistake-log ───────────────────────────────────────────
+  server.tool(
+    'mistake-log',
+    '실수를 기록합니다. 원인, 해결법, 예방법을 함께 저장하세요.',
+    {
+      description: z.string().describe('실수 설명'),
+      cause: z.string().optional().describe('원인'),
+      fix: z.string().optional().describe('해결 방법'),
+      prevention: z.string().optional().describe('예방법'),
+      severity: z.enum(['low', 'medium', 'high', 'critical']).optional().describe('심각도'),
+    },
+    async ({ description, cause, fix, prevention, severity }) => {
+      return safeCall(async () => {
+        const result = await callWorker('POST', '/api/mistakes', {
+          description,
+          cause,
+          fix,
+          prevention,
+          severity,
+          project: getProjectName(),
+        });
+
+        if (result.error) {
+          return { content: [{ type: 'text', text: `실수 기록 실패: ${result.error}` }], isError: true };
+        }
+
+        return { content: [{ type: 'text', text: `실수 기록 완료 (ID: ${result.id || '-'}).` }] };
+      });
+    },
+  );
+
+  // ── mistake-search ────────────────────────────────────────
+  server.tool(
+    'mistake-search',
+    '과거 실수와 주의사항을 검색합니다. 같은 실수를 반복하지 않도록.',
+    {
+      query: z.string().optional().describe('검색 키워드'),
+      project: z.string().optional().describe('프로젝트명 필터'),
+    },
+    async ({ query, project }) => {
+      return safeCall(async () => {
+        const result = await callWorker('GET', '/api/mistakes' + qs({ q: query, project }));
+
+        if (!result.mistakes || result.mistakes.length === 0) {
+          return { content: [{ type: 'text', text: '관련 실수 기록이 없습니다.' }] };
+        }
+
+        const lines = result.mistakes.map((m) => {
+          const parts = [`- [${m.id}] ${m.description}`];
+          if (m.severity) parts[0] += ` (${m.severity})`;
+          if (m.cause) parts.push(`  원인: ${m.cause}`);
+          if (m.prevention) parts.push(`  예방: ${m.prevention}`);
+          return parts.join('\n');
+        });
+        const text = `실수 기록 ${result.mistakes.length}건:\n\n` + lines.join('\n');
+        return { content: [{ type: 'text', text }] };
+      });
+    },
+  );
+
+  // ── retrospect ────────────────────────────────────────────
+  server.tool(
+    'retrospect',
+    '세션 복기를 실행합니다. 축적된 메모리와 실수를 종합 분석합니다.',
+    {
+      project: z.string().optional().describe('프로젝트명 (생략시 현재 프로젝트)'),
+    },
+    async ({ project }) => {
+      return safeCall(async () => {
+        const result = await callWorker('POST', '/api/retrospect', {
+          project: project || getProjectName(),
+        });
+
+        if (result.error) {
+          return { content: [{ type: 'text', text: `복기 실패: ${result.error}` }], isError: true };
+        }
+
+        const text = result.report || result.content || JSON.stringify(result, null, 2);
+        return { content: [{ type: 'text', text }] };
+      });
+    },
+  );
+
   // ── Connect ───────────────────────────────────────────────
   const transport = new StdioServerTransport();
   await server.connect(transport);

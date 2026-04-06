@@ -82,6 +82,26 @@ function loadProjectManager() {
   }
 }
 
+// ── Wiki Manager module (lazy, graceful if absent) ────────────
+let wikiMgrLoaded = false;
+let wikiMgr;
+function loadWikiManager() {
+  if (wikiMgrLoaded) return wikiMgr;
+  wikiMgrLoaded = true;
+  try { wikiMgr = require('./wiki-manager.cjs'); } catch { wikiMgr = null; }
+  return wikiMgr;
+}
+
+// ── Self-Learner module (lazy, graceful if absent) ────────────
+let selfLearnerMod;
+let selfLearnerLoaded = false;
+function loadSelfLearner() {
+  if (selfLearnerLoaded) return selfLearnerMod;
+  selfLearnerLoaded = true;
+  try { selfLearnerMod = require('./self-learner.cjs'); } catch { selfLearnerMod = null; }
+  return selfLearnerMod;
+}
+
 // ── AI-enriched memory update ─────────────────────────────────
 function updateMemoryWithAI(db, id, aiResult) {
   try {
@@ -630,6 +650,159 @@ async function startServer() {
       });
     } catch (err) {
       console.error('[fireauto-mem] GET /api/dashboard error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // ── Wiki API ──────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════
+
+  // ── GET /api/wiki/index ──────────────────────────────────
+  app.get('/api/wiki/index', async (_req, res) => {
+    try {
+      const wm = loadWikiManager();
+      if (!wm) return res.status(503).json({ error: 'wiki-manager module not available' });
+      const pages = wm.listPages();
+      const index = wm.readPage('index');
+      res.json({ pages, index });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/wiki/index error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── GET /api/wiki/search ─────────────────────────────────
+  app.get('/api/wiki/search', async (req, res) => {
+    try {
+      const wm = loadWikiManager();
+      if (!wm) return res.status(503).json({ error: 'wiki-manager module not available' });
+      const { q } = req.query;
+      if (!q) return res.status(400).json({ error: 'Missing query parameter: q' });
+      const results = wm.searchWiki(q);
+      res.json({ results });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/wiki/search error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── GET /api/wiki/:page ──────────────────────────────────
+  app.get('/api/wiki/:page', async (req, res) => {
+    try {
+      const wm = loadWikiManager();
+      if (!wm) return res.status(503).json({ error: 'wiki-manager module not available' });
+      const content = wm.readPage(req.params.page);
+      if (content === null || content === undefined) {
+        return res.status(404).json({ error: 'Page not found' });
+      }
+      res.json({ page: req.params.page, content });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/wiki/:page error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── POST /api/wiki ───────────────────────────────────────
+  app.post('/api/wiki', async (req, res) => {
+    try {
+      const wm = loadWikiManager();
+      if (!wm) return res.status(503).json({ error: 'wiki-manager module not available' });
+      const { page, content } = req.body;
+      if (!page || !content) return res.status(400).json({ error: 'Missing required fields: page, content' });
+      wm.writePage(page, content);
+      broadcast({ event: 'wiki_updated', data: { page } });
+      res.json({ ok: true, page });
+    } catch (err) {
+      console.error('[fireauto-mem] POST /api/wiki error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // ── Skills API ────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════
+
+  // ── GET /api/skills ──────────────────────────────────────
+  app.get('/api/skills', async (req, res) => {
+    try {
+      const { q, category } = req.query;
+      const { searchSkills: dbSearchSkills } = loadDbModule();
+      const skills = dbSearchSkills(db, { query: q, category, limit: 50 });
+      res.json({ skills });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/skills error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── POST /api/skills ─────────────────────────────────────
+  app.post('/api/skills', async (req, res) => {
+    try {
+      const { name, description, content, category } = req.body;
+      if (!name || !content) return res.status(400).json({ error: 'Missing required fields: name, content' });
+      const { saveSkill: dbSaveSkill } = loadDbModule();
+      const id = dbSaveSkill(db, { name, description, content, category });
+      broadcast({ event: 'skill_saved', data: { id, name, category } });
+      res.json({ id });
+    } catch (err) {
+      console.error('[fireauto-mem] POST /api/skills error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // ── Mistakes API ──────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════
+
+  // ── GET /api/mistakes ────────────────────────────────────
+  app.get('/api/mistakes', async (req, res) => {
+    try {
+      const { q, project } = req.query;
+      const { searchMistakes: dbSearchMistakes, listMistakes: dbListMistakes } = loadDbModule();
+      let mistakes;
+      if (q) {
+        mistakes = dbSearchMistakes(db, { query: q, project, limit: 50 });
+      } else {
+        mistakes = dbListMistakes(db, { project, limit: 50 });
+      }
+      res.json({ mistakes });
+    } catch (err) {
+      console.error('[fireauto-mem] GET /api/mistakes error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── POST /api/mistakes ───────────────────────────────────
+  app.post('/api/mistakes', async (req, res) => {
+    try {
+      const { description, cause, fix, prevention, severity, project } = req.body;
+      if (!description || !project) return res.status(400).json({ error: 'Missing required fields: description, project' });
+      const { logMistake: dbLogMistake } = loadDbModule();
+      const id = dbLogMistake(db, { project, description, cause, fix, prevention, severity });
+      broadcast({ event: 'mistake_logged', data: { id, project, severity } });
+      res.json({ id });
+    } catch (err) {
+      console.error('[fireauto-mem] POST /api/mistakes error:', err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // ── Retrospect API ────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════
+
+  // ── POST /api/retrospect ─────────────────────────────────
+  app.post('/api/retrospect', async (req, res) => {
+    try {
+      const sl = loadSelfLearner();
+      if (!sl) return res.status(503).json({ error: 'self-learner module not available' });
+      const { project } = req.body;
+      const result = sl.runRetrospect(db, project);
+      broadcast({ event: 'retrospect_done', data: { project, learnings: result.learnings?.length || 0 } });
+      res.json(result);
+    } catch (err) {
+      console.error('[fireauto-mem] POST /api/retrospect error:', err.message);
       res.status(500).json({ error: err.message });
     }
   });

@@ -145,6 +145,32 @@ CREATE TABLE IF NOT EXISTS tasks (
   FOREIGN KEY (milestone_id) REFERENCES milestones(id),
   FOREIGN KEY (project_id) REFERENCES projects(id)
 );
+
+-- 스킬 테이블 (v4)
+CREATE TABLE IF NOT EXISTS skills (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  description TEXT,
+  content TEXT NOT NULL,
+  category TEXT,
+  source_project TEXT,
+  usage_count INTEGER DEFAULT 0,
+  created_at_epoch INTEGER NOT NULL,
+  updated_at_epoch INTEGER
+);
+
+-- 실수 기록 테이블 (v4)
+CREATE TABLE IF NOT EXISTS mistakes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project TEXT NOT NULL,
+  description TEXT NOT NULL,
+  cause TEXT,
+  fix TEXT,
+  prevention TEXT,
+  severity TEXT DEFAULT 'medium',
+  files_involved TEXT DEFAULT '[]',
+  created_at_epoch INTEGER NOT NULL
+);
 `;
 
 // ── v2 Migration ─────────────────────────────────────────
@@ -993,6 +1019,193 @@ function getProjectProgress(db, projectId) {
   }
 }
 
+// ── Skill CRUD ──────────────────────────────────────────
+
+/**
+ * 스킬 저장
+ * @param {import('sql.js').Database} db
+ * @param {Object} params
+ * @param {string} params.name - 스킬 이름
+ * @param {string} [params.description] - 설명
+ * @param {string} params.content - 스킬 내용
+ * @param {string} [params.category] - 카테고리
+ * @param {string} [params.source_project] - 출처 프로젝트
+ * @returns {number} 생성된 스킬 id
+ */
+function saveSkill(db, { name, description, content, category, source_project }) {
+  if (!name || !content) throw new Error('Required fields: name, content');
+  const epoch = nowEpoch();
+  try {
+    db.run(
+      `INSERT INTO skills (name, description, content, category, source_project, usage_count, created_at_epoch, updated_at_epoch)
+       VALUES (?, ?, ?, ?, ?, 0, ?, ?)`,
+      [name, description || null, content, category || null, source_project || null, epoch, epoch]
+    );
+    const result = db.exec('SELECT last_insert_rowid() as id');
+    return result[0].values[0][0];
+  } catch (err) {
+    throw new Error(`Failed to save skill: ${err.message}`);
+  }
+}
+
+/**
+ * 스킬 검색 (이름/설명/내용에서 LIKE 검색)
+ * @param {import('sql.js').Database} db
+ * @param {Object} params
+ * @param {string} [params.query] - 검색어
+ * @param {string} [params.category] - 카테고리 필터
+ * @param {number} [params.limit=20] - 결과 제한
+ * @returns {Object[]}
+ */
+function searchSkills(db, { query, category, limit = 20 } = {}) {
+  try {
+    let sql = 'SELECT * FROM skills WHERE 1=1';
+    const params = [];
+    if (query) {
+      sql += ' AND (name LIKE ? OR description LIKE ? OR content LIKE ?)';
+      const pattern = `%${query}%`;
+      params.push(pattern, pattern, pattern);
+    }
+    if (category) {
+      sql += ' AND category = ?';
+      params.push(category);
+    }
+    sql += ' ORDER BY usage_count DESC, created_at_epoch DESC LIMIT ?';
+    params.push(limit);
+    return rowsToObjects(db.exec(sql, params));
+  } catch (err) {
+    throw new Error(`Failed to search skills: ${err.message}`);
+  }
+}
+
+/**
+ * ID로 스킬 조회
+ * @param {import('sql.js').Database} db
+ * @param {number} id
+ * @returns {Object|null}
+ */
+function getSkill(db, id) {
+  try {
+    const rows = rowsToObjects(db.exec('SELECT * FROM skills WHERE id = ?', [id]));
+    return rows.length ? rows[0] : null;
+  } catch (err) {
+    throw new Error(`Failed to get skill ${id}: ${err.message}`);
+  }
+}
+
+/**
+ * 스킬 사용 횟수 증가
+ * @param {import('sql.js').Database} db
+ * @param {number} id
+ * @returns {boolean}
+ */
+function incrementSkillUsage(db, id) {
+  try {
+    const epoch = nowEpoch();
+    db.run(
+      'UPDATE skills SET usage_count = usage_count + 1, updated_at_epoch = ? WHERE id = ?',
+      [epoch, id]
+    );
+    return db.getRowsModified() > 0;
+  } catch (err) {
+    throw new Error(`Failed to increment skill usage: ${err.message}`);
+  }
+}
+
+// ── Mistake CRUD ────────────────────────────────────────
+
+/**
+ * 실수 기록 저장
+ * @param {import('sql.js').Database} db
+ * @param {Object} params
+ * @param {string} params.project - 프로젝트명
+ * @param {string} params.description - 실수 설명
+ * @param {string} [params.cause] - 원인
+ * @param {string} [params.fix] - 수정 방법
+ * @param {string} [params.prevention] - 예방법
+ * @param {string} [params.severity='medium'] - 심각도 (low|medium|high|critical)
+ * @param {string[]|string} [params.files_involved=[]] - 관련 파일
+ * @returns {number} 생성된 실수 기록 id
+ */
+function logMistake(db, { project, description, cause, fix, prevention, severity = 'medium', files_involved = [] }) {
+  if (!project || !description) throw new Error('Required fields: project, description');
+  const epoch = nowEpoch();
+  const filesStr = typeof files_involved === 'string' ? files_involved : JSON.stringify(files_involved);
+  try {
+    db.run(
+      `INSERT INTO mistakes (project, description, cause, fix, prevention, severity, files_involved, created_at_epoch)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [project, description, cause || null, fix || null, prevention || null, severity, filesStr, epoch]
+    );
+    const result = db.exec('SELECT last_insert_rowid() as id');
+    return result[0].values[0][0];
+  } catch (err) {
+    throw new Error(`Failed to log mistake: ${err.message}`);
+  }
+}
+
+/**
+ * 실수 기록 검색 (설명/원인/수정에서 LIKE 검색)
+ * @param {import('sql.js').Database} db
+ * @param {Object} params
+ * @param {string} [params.project] - 프로젝트 필터
+ * @param {string} [params.query] - 검색어
+ * @param {number} [params.limit=20] - 결과 제한
+ * @returns {Object[]}
+ */
+function searchMistakes(db, { project, query, limit = 20 } = {}) {
+  try {
+    let sql = 'SELECT * FROM mistakes WHERE 1=1';
+    const params = [];
+    if (project) {
+      sql += ' AND project = ?';
+      params.push(project);
+    }
+    if (query) {
+      sql += ' AND (description LIKE ? OR cause LIKE ? OR fix LIKE ?)';
+      const pattern = `%${query}%`;
+      params.push(pattern, pattern, pattern);
+    }
+    sql += ' ORDER BY created_at_epoch DESC LIMIT ?';
+    params.push(limit);
+    const rows = rowsToObjects(db.exec(sql, params));
+    return rows.map(row => {
+      row.files_involved = safeJsonParse(row.files_involved, []);
+      return row;
+    });
+  } catch (err) {
+    throw new Error(`Failed to search mistakes: ${err.message}`);
+  }
+}
+
+/**
+ * 프로젝트별 실수 기록 목록 조회
+ * @param {import('sql.js').Database} db
+ * @param {Object} params
+ * @param {string} [params.project] - 프로젝트 필터
+ * @param {number} [params.limit=20] - 결과 제한
+ * @returns {Object[]}
+ */
+function listMistakes(db, { project, limit = 20 } = {}) {
+  try {
+    let sql = 'SELECT * FROM mistakes WHERE 1=1';
+    const params = [];
+    if (project) {
+      sql += ' AND project = ?';
+      params.push(project);
+    }
+    sql += ' ORDER BY created_at_epoch DESC LIMIT ?';
+    params.push(limit);
+    const rows = rowsToObjects(db.exec(sql, params));
+    return rows.map(row => {
+      row.files_involved = safeJsonParse(row.files_involved, []);
+      return row;
+    });
+  } catch (err) {
+    throw new Error(`Failed to list mistakes: ${err.message}`);
+  }
+}
+
 // ── Stats ─────────────────────────────────────────────────
 
 /**
@@ -1101,4 +1314,12 @@ module.exports = {
   listTasks,
   updateTaskStatus,
   getProjectProgress,
+  // v4 — skills & mistakes
+  saveSkill,
+  searchSkills,
+  getSkill,
+  incrementSkillUsage,
+  logMistake,
+  searchMistakes,
+  listMistakes,
 };

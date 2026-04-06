@@ -28,3 +28,10 @@ curl -sf -X POST "$WORKER_URL/api/sessions/summarize" \
   }" > /dev/null 2>&1
 
 echo "[fireauto-mem] 세션 요약 저장됨" >&2
+
+# 복기 실행 (Worker가 살아있을 때만)
+curl -sf -X POST "$WORKER_URL/api/retrospect" \
+  -H "Content-Type: application/json" \
+  -d "{\"project\":\"$PROJECT\",\"session_id\":\"$SESSION_ID\"}" > /dev/null 2>&1
+
+echo "[fireauto-mem] 세션 복기 완료" >&2
