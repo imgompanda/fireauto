@@ -77,16 +77,18 @@ title에 도구 이름(Edit, Bash, Write)을 넣지 마세요. 사람이 읽기 
 
 <actions>
   <action type="mistake">실수 설명 | 원인 | 수정 | 방지법</action>
-  <action type="skill">스킬 이름 | 설명 | 카테고리</action>
+  <action type="skill">english-kebab-name | 설명(한국어) | category(영어)</action>
   <action type="wiki" page="gotchas">추가할 내용</action>
   <action type="rule">CLAUDE.md에 추가할 규칙</action>
 </actions>
 
+주의: 스킬 이름과 카테고리는 반드시 영어 kebab-case로. 설명만 한국어.
+
 예시:
-- 같은 파일을 3번 이상 비슷하게 수정 → type="skill"
-- 에러를 고치는 작업 → type="mistake" + type="wiki" page="gotchas"
-- 중요한 설계 결정 → type="wiki" page="decisions"
-- 반복 실수 방지 규칙 → type="rule"`;
+- 같은 패턴 반복 → type="skill": async-await-safety | await 누락 방지 패턴 | coding
+- 에러를 고침 → type="mistake": 설명 | 원인 | 수정 | 방지법
+- 주의사항 발견 → type="wiki" page="gotchas": 내용
+- 규칙 추가 → type="rule": 규칙 내용`;
 }
 
 // ── Observation Prompt ────────────────────────────────────
