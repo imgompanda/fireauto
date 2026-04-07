@@ -213,7 +213,16 @@ fireauto 플러그인의 스킬들이 특정 상황에서 자동으로 활성화
 
 ### Wiki 관리
 - 중요한 지식은 wiki-write MCP로 해당 페이지에 기록할 것 (patterns/gotchas/decisions/skills-catalog).
+- 코드 작업 전 wiki-read로 관련 지식 페이지를 능동적으로 확인할 것.
 - CLAUDE.md가 80줄을 넘으면 오래된 규칙을 wiki로 이동할 것.
+
+### 지식 탐색 순서 (필수)
+- 지식이 필요할 때: CLAUDE.md 확인 → wiki-read → skill-search → memory-search 순서로 탐색.
+- 이전 프로젝트 경험이 필요할 때: skill-search와 mistake-search로 능동적으로 검색할 것.
+
+### 자동 린트 + 자가 치유
+- 코드 수정 후 린트 에러가 감지되면 사용자에게 묻기 전에 최대 3회 자동 수정 시도할 것.
+- 성공하면 조용히 넘어가고, 3회 실패 시에만 사용자에게 보고할 것.
 ```
 
 ### 적용 위치:
