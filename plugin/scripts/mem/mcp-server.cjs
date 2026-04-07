@@ -3,11 +3,32 @@
 
 // ── fireauto-mem MCP Server ── stdio transport, delegates to Worker HTTP API ──
 
+// NODE_PATH fallback — CLAUDE_PLUGIN_DATA가 없을 때 대비
+if (!process.env.NODE_PATH || !process.env.NODE_PATH.includes('fireauto')) {
+  const path = require('path');
+  const fs = require('fs');
+  const os = require('os');
+  const candidates = [
+    path.join(os.homedir(), '.claude/plugins/data/fireauto-imgompanda/node_modules'),
+    path.join(os.homedir(), '.fireauto-mem/node_modules'),
+    path.join(__dirname, 'node_modules'),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, '@modelcontextprotocol'))) {
+      process.env.NODE_PATH = (process.env.NODE_PATH ? process.env.NODE_PATH + ':' : '') + c;
+      require('module').Module._initPaths();
+      break;
+    }
+  }
+}
+
 const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
 const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
 const { z } = require('zod');
 const http = require('http');
 const { MEM_PORT, MEMORY_TYPES, getProjectName } = require('./types.cjs');
+
+console.error('[fireauto-mem MCP] Starting... NODE_PATH=' + (process.env.NODE_PATH || 'NONE').slice(0, 80));
 
 const WORKER_URL = `http://localhost:${MEM_PORT}`;
 const LOG_PREFIX = '[fireauto-mem MCP]';

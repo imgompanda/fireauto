@@ -1219,8 +1219,15 @@ async function startServer() {
   process.on('SIGINT', gracefulShutdown);
 
   // ── Start listening ───────────────────────────────────────
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.error(`[fireauto-mem] Worker running on http://localhost:${PORT}`);
+  });
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`[fireauto-mem] Port ${PORT} already in use — Worker already running. Exiting gracefully.`);
+      process.exit(0);
+    }
+    throw err;
   });
 }
 
