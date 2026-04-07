@@ -89,6 +89,37 @@ process.stdin.on('end',()=>{
 });
 " 2>/dev/null)
 
+# Wiki index 가져오기 (Karpathy 패턴 — CLAUDE.md = index)
+WIKI_INDEX=$(curl -sf "$WORKER_URL/api/wiki/index" 2>/dev/null | node -e "
+let d='';
+process.stdin.on('data',c=>d+=c);
+process.stdin.on('end',()=>{
+  try{
+    const j=JSON.parse(d);
+    const pages=(j.pages||[]).filter(p=>p!=='index');
+    if(!pages.length)process.exit(0);
+    let s='### 지식 Wiki (상세는 여기서 찾으세요)\n';
+    pages.forEach(p=>s+='- wiki-read: '+p+'\n');
+    console.log(s);
+  }catch{process.exit(0);}
+});
+" 2>/dev/null)
+
+# 최근 스킬 가져오기
+SKILLS=$(curl -sf "$WORKER_URL/api/skills" 2>/dev/null | node -e "
+let d='';
+process.stdin.on('data',c=>d+=c);
+process.stdin.on('end',()=>{
+  try{
+    const s=(JSON.parse(d).skills||[]).slice(0,5);
+    if(!s.length)process.exit(0);
+    let out='### 사용 가능한 스킬\n';
+    s.forEach(x=>out+='- skill-search: '+x.name+' ('+x.category+')\n');
+    console.log(out);
+  }catch{process.exit(0);}
+});
+" 2>/dev/null)
+
 # .claude/CLAUDE.md에 주입 (기존 "자동 생성" 섹션 교체)
 if [ -f "$PROJECT_CLAUDE_MD" ]; then
   # 기존 자동 생성 섹션 제거 (## 현재 프로젝트 상태 ~ 다음 ## 또는 EOF)
@@ -105,11 +136,15 @@ if [ -f "$PROJECT_CLAUDE_MD" ]; then
   echo "" >> "$TEMP"
   echo "$CONTEXT" >> "$TEMP"
   [ -n "$MISTAKES" ] && echo "$MISTAKES" >> "$TEMP"
+  [ -n "$WIKI_INDEX" ] && echo "$WIKI_INDEX" >> "$TEMP"
+  [ -n "$SKILLS" ] && echo "$SKILLS" >> "$TEMP"
   mv "$TEMP" "$PROJECT_CLAUDE_MD"
 else
   mkdir -p .claude
   echo "$CONTEXT" > "$PROJECT_CLAUDE_MD"
   [ -n "$MISTAKES" ] && echo "$MISTAKES" >> "$PROJECT_CLAUDE_MD"
+  [ -n "$WIKI_INDEX" ] && echo "$WIKI_INDEX" >> "$PROJECT_CLAUDE_MD"
+  [ -n "$SKILLS" ] && echo "$SKILLS" >> "$PROJECT_CLAUDE_MD"
 fi
 
 echo "[fireauto] 프로젝트 컨텍스트 주입 완료" >&2
