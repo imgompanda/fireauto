@@ -1,4 +1,8 @@
 <p align="center">
+  <a href="README.md"><b>🇰🇷 한국어</b></a> · <a href="README.en.md">🇺🇸 English</a>
+</p>
+
+<p align="center">
   <img src="fireauto.png" alt="fireauto" width="400" />
 </p>
 
@@ -727,6 +731,11 @@ fireauto를 만든 사람이 직접 가르치는 부트캠프예요.
 **[기업 문의하기 ->](https://fireship.me/ko/enterprise?utm_source=github&utm_medium=readme&utm_campaign=fireauto)**
 
 ---
+
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=imgompanda/fireauto&type=Date)](https://star-history.com/#imgompanda/fireauto&Date)
 
 ## About
 
