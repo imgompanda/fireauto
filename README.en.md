@@ -679,9 +679,16 @@ The Worker server requires the memory system to be installed. Run `/memory-insta
 ---
 
 
+
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=imgompanda/fireauto&type=Date)](https://star-history.com/#imgompanda/fireauto&Date)
+<a href="https://www.star-history.com/?repos=imgompanda%2Ffireauto&type=date&legend=bottom-right">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=imgompanda/fireauto&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=imgompanda/fireauto&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=imgompanda/fireauto&type=date&legend=top-left" />
+ </picture>
+</a>
 
 ## About
 
