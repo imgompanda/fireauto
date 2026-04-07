@@ -4,15 +4,43 @@
 
 WORKER_URL="http://localhost:37888"
 MEM_DIR="$HOME/.fireauto-mem"
+PID_FILE="$HOME/.fireauto-mem/worker.pid"
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")")}"
 
-# Worker 헬스 체크
-if ! curl -sf "$WORKER_URL/api/health" > /dev/null 2>&1; then
+# Worker 싱글턴 보장 — 이미 살아있으면 재사용
+WORKER_ALIVE=false
+
+# 1) PID 파일로 빠른 확인
+if [ -f "$PID_FILE" ]; then
+  STORED_PID=$(cat "$PID_FILE")
+  if kill -0 "$STORED_PID" 2>/dev/null; then
+    # 프로세스 살아있음 — health 체크
+    if curl -sf "$WORKER_URL/api/health" > /dev/null 2>&1; then
+      echo "[fireauto-mem] Worker 재사용 (PID $STORED_PID)" >&2
+      WORKER_ALIVE=true
+    fi
+  fi
+fi
+
+# 2) PID 파일 없거나 stale → health 체크 fallback
+if [ "$WORKER_ALIVE" = false ]; then
+  if curl -sf "$WORKER_URL/api/health" > /dev/null 2>&1; then
+    echo "[fireauto-mem] Worker 이미 실행 중 — 재사용" >&2
+    WORKER_ALIVE=true
+  fi
+fi
+
+# 3) Worker가 없으면 시작
+if [ "$WORKER_ALIVE" = false ]; then
   echo "[fireauto-mem] Worker 시작 중..." >&2
 
-  # 포트 37888 사용 중인 좀비 프로세스 정리
-  lsof -ti:37888 2>/dev/null | xargs kill -9 2>/dev/null
-  sleep 0.5
+  # 좀비 프로세스만 정리 (포트 점유하지만 health에 응답 안 하면 좀비)
+  EXISTING_PID=$(lsof -ti:37888 2>/dev/null)
+  if [ -n "$EXISTING_PID" ]; then
+    echo "[fireauto-mem] 좀비 Worker(PID $EXISTING_PID) 정리" >&2
+    kill -9 $EXISTING_PID 2>/dev/null
+    sleep 0.5
+  fi
 
   # node_modules 경로 설정 — PLUGIN_DATA 우선, fallback으로 fireauto-mem
   PLUGIN_DATA_DIR="${CLAUDE_PLUGIN_DATA:-$HOME/.claude/plugins/data/fireauto-imgompanda}"

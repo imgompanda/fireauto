@@ -1182,14 +1182,14 @@ async function startServer() {
     gracefulShutdown();
   });
 
-  // ── Periodic DB save ──────────────────────────────────────
+  // ── Periodic DB save (10초 — 멀티터미널 데이터 유실 방지) ──
   const saveInterval = setInterval(() => {
     try {
       saveDb(db, dbPath);
     } catch (err) {
       console.error('[fireauto-mem] Periodic save error:', err.message);
     }
-  }, 30000);
+  }, 10000);
 
   // ── Graceful shutdown ─────────────────────────────────────
   function gracefulShutdown() {
@@ -1212,6 +1212,11 @@ async function startServer() {
     } catch (err) {
       console.error('[fireauto-mem] Final save error:', err.message);
     }
+    // PID 파일 정리
+    try {
+      const pidPath = require('path').join(require('os').homedir(), '.fireauto-mem', 'worker.pid');
+      if (require('fs').existsSync(pidPath)) require('fs').unlinkSync(pidPath);
+    } catch { /* ignore */ }
     process.exit(0);
   }
 
@@ -1221,6 +1226,14 @@ async function startServer() {
   // ── Start listening ───────────────────────────────────────
   const server = app.listen(PORT, () => {
     console.error(`[fireauto-mem] Worker running on http://localhost:${PORT}`);
+    // PID 파일 저장 — 멀티터미널에서 Worker 추적용
+    try {
+      const pidDir = require('path').join(require('os').homedir(), '.fireauto-mem');
+      if (!require('fs').existsSync(pidDir)) require('fs').mkdirSync(pidDir, { recursive: true });
+      require('fs').writeFileSync(require('path').join(pidDir, 'worker.pid'), String(process.pid));
+    } catch (err) {
+      console.error('[fireauto-mem] PID file write error:', err.message);
+    }
   });
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {

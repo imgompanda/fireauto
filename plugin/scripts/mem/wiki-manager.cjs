@@ -47,8 +47,62 @@ function readPage(pageName) {
 }
 
 /**
+ * 페이지 카테고리 추정
+ * @param {string} pageName
+ * @returns {string}
+ */
+function guessCategory(pageName) {
+  const map = {
+    patterns: 'knowledge', gotchas: 'knowledge', decisions: 'knowledge',
+    'skills-catalog': 'catalog', retrospective: 'retrospective',
+  };
+  return map[pageName] || 'knowledge';
+}
+
+/**
+ * 페이지 태그 추정
+ * @param {string} pageName
+ * @returns {string[]}
+ */
+function guessTags(pageName) {
+  const map = {
+    patterns: ['coding', 'pattern', 'best-practice'],
+    gotchas: ['bug', 'gotcha', 'warning'],
+    decisions: ['design', 'decision', 'architecture'],
+    'skills-catalog': ['skill', 'automation', 'catalog'],
+    retrospective: ['retro', 'learning', 'review'],
+  };
+  return map[pageName] || ['general'];
+}
+
+/**
+ * YAML frontmatter 생성
+ * @param {string} pageName
+ * @param {string} content - 본문 (제목 추출용)
+ * @returns {string}
+ */
+function buildFrontmatter(pageName, content) {
+  const titleLine = content.split('\n').find(l => l.startsWith('#'));
+  const title = titleLine ? titleLine.replace(/^#+\s*/, '') : pageName;
+  const category = guessCategory(pageName);
+  const tags = guessTags(pageName);
+  const today = new Date().toISOString().split('T')[0];
+  return [
+    '---',
+    `title: ${title}`,
+    `category: ${category}`,
+    `tags: [${tags.join(', ')}]`,
+    `updated: ${today}`,
+    '---',
+    '',
+  ].join('\n');
+}
+
+/**
  * Wiki 페이지 쓰기/업데이트
- * 
+ * 새 페이지 생성 시 YAML frontmatter 자동 추가.
+ * 기존 페이지 업데이트 시 frontmatter의 updated 필드만 갱신.
+ *
  * @param {string} pageName - 페이지 이름 (.md 확장자 제외)
  * @param {string} content - 페이지 내용
  */
@@ -56,7 +110,20 @@ function writePage(pageName, content) {
   pageName = sanitizePage(pageName);
   const dir = getWikiDir();
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, pageName + '.md'), content, 'utf8');
+
+  const filePath = path.join(dir, pageName + '.md');
+  const isNew = !fs.existsSync(filePath);
+  const today = new Date().toISOString().split('T')[0];
+
+  if (isNew && !content.startsWith('---')) {
+    // 새 페이지: frontmatter 추가
+    content = buildFrontmatter(pageName, content) + content;
+  } else if (!isNew && content.startsWith('---')) {
+    // 기존 페이지 + frontmatter 있음: updated 날짜 갱신
+    content = content.replace(/^(---[\s\S]*?updated:\s*)\S+([\s\S]*?---)/, `$1${today}$2`);
+  }
+
+  fs.writeFileSync(filePath, content, 'utf8');
   updateIndex();
 }
 
@@ -85,19 +152,39 @@ function searchWiki(query) {
 
 /**
  * index.md 자동 갱신 (Karpathy 패턴)
- * 
+ * content-oriented 카탈로그: 요약 + 수정일 + 크기
  */
 function updateIndex() {
   const dir = getWikiDir();
   if (!fs.existsSync(dir)) return;
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.md') && f !== 'index.md');
-  const lines = ['# Wiki Index\n', '자동 생성됨. 수정하지 마세요.\n'];
+
+  const lines = [
+    '# 지식 Wiki Index',
+    '',
+    '> AI가 지식을 찾을 때 이 인덱스를 먼저 참고합니다.',
+    '> 상세 내용은 wiki-read MCP로 해당 페이지를 읽으세요.',
+    '',
+    '| 페이지 | 요약 | 수정일 | 크기 |',
+    '|--------|------|--------|------|',
+  ];
+
   for (const file of files) {
-    const content = fs.readFileSync(path.join(dir, file), 'utf8');
-    const firstLine = content.split('\n').find(l => l.trim()) || file;
-    const title = firstLine.replace(/^#+\s*/, '');
-    lines.push(`- [${title}](${file})`);
+    const filePath = path.join(dir, file);
+    const content = fs.readFileSync(filePath, 'utf8');
+    const name = file.replace('.md', '');
+    const firstLine = content.split('\n').find(l => l.trim() && !l.startsWith('#') && !l.startsWith('---')) || '';
+    const summary = firstLine.slice(0, 60).replace(/\|/g, '\\|');
+    const stat = fs.statSync(filePath);
+    const date = stat.mtime.toISOString().split('T')[0];
+    const size = Math.round(content.length / 1024) + 'KB';
+
+    lines.push(`| ${name} | ${summary} | ${date} | ${size} |`);
   }
+
+  lines.push('');
+  lines.push('총 ' + files.length + '개 페이지');
+
   fs.writeFileSync(path.join(dir, 'index.md'), lines.join('\n'), 'utf8');
 }
 

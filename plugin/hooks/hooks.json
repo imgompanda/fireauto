@@ -32,6 +32,11 @@
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/post-tool-check.sh",
             "timeout": 5,
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/auto-lint.sh",
+            "timeout": 10
           }
         ]
       }
