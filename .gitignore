@@ -1,4 +1,6 @@
 node_modules/
+# 플러그인 의존성은 포함 (Claude Code 플러그인은 npm install 자동 실행 안 됨)
+!plugin/scripts/mem/node_modules/
 .env
 .env.local
 .DS_Store
