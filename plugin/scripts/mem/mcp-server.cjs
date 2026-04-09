@@ -9,13 +9,14 @@ if (!process.env.NODE_PATH || !process.env.NODE_PATH.includes('fireauto')) {
   const fs = require('fs');
   const os = require('os');
   const candidates = [
-    path.join(os.homedir(), '.claude/plugins/data/fireauto-imgompanda/node_modules'),
+    process.env.CLAUDE_PLUGIN_DATA ? path.join(process.env.CLAUDE_PLUGIN_DATA, 'node_modules') : null,
     path.join(os.homedir(), '.fireauto-mem/node_modules'),
     path.join(__dirname, 'node_modules'),
-  ];
+  ].filter(Boolean);
   for (const c of candidates) {
     if (fs.existsSync(path.join(c, '@modelcontextprotocol'))) {
-      process.env.NODE_PATH = (process.env.NODE_PATH ? process.env.NODE_PATH + ':' : '') + c;
+      const delimiter = process.platform === 'win32' ? ';' : ':';
+      process.env.NODE_PATH = (process.env.NODE_PATH ? process.env.NODE_PATH + delimiter : '') + c;
       require('module').Module._initPaths();
       break;
     }

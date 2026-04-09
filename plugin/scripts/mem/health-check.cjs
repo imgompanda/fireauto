@@ -12,18 +12,20 @@ const { ensureRelationsTable } = require('./relations.cjs');
 // ── Helpers ──────────────────────────────────────────────
 
 /**
- * sql.js db.exec 결과를 객체 배열로 변환
- * @param {Array} results - db.exec() 결과
+ * sql.js prepare/bind 패턴으로 파라미터 바인딩된 SELECT 쿼리 실행.
+ * db.exec(sql, params)는 params를 무시하므로 반드시 이 함수를 사용할 것.
+ * @param {import('sql.js').Database} db
+ * @param {string} sql
+ * @param {Array} params
  * @returns {Object[]}
  */
-function rowsToObjects(results) {
-  if (!results.length || !results[0].values.length) return [];
-  const columns = results[0].columns;
-  return results[0].values.map((row) => {
-    const obj = {};
-    columns.forEach((col, i) => { obj[col] = row[i]; });
-    return obj;
-  });
+function queryWithParams(db, sql, params) {
+  const stmt = db.prepare(sql);
+  if (params && params.length) stmt.bind(params);
+  const results = [];
+  while (stmt.step()) results.push(stmt.getAsObject());
+  stmt.free();
+  return results;
 }
 
 // ── Health Check ─────────────────────────────────────────
@@ -52,13 +54,13 @@ function runHealthCheck(db, project) {
 
   // 1. orphan_memories: 관계가 0개인 메모리
   try {
-    const orphans = rowsToObjects(db.exec(
+    const orphans = queryWithParams(db,
       `SELECT m.id, m.title
        FROM memories m
        LEFT JOIN relations r ON m.id = r.source_id OR m.id = r.target_id
        WHERE r.id IS NULL AND m.project = ?`,
       [project]
-    ));
+    );
     if (orphans.length > 0) {
       issues.push({
         severity: 'warning',
@@ -73,21 +75,21 @@ function runHealthCheck(db, project) {
 
   // 2. duplicate_titles: 제목이 같은 메모리
   try {
-    const dupes = rowsToObjects(db.exec(
+    const dupes = queryWithParams(db,
       `SELECT title, COUNT(*) as cnt
        FROM memories
        WHERE project = ?
        GROUP BY title
        HAVING cnt > 1`,
       [project]
-    ));
+    );
     if (dupes.length > 0) {
       const dupeIds = [];
       for (const d of dupes) {
-        const rows = rowsToObjects(db.exec(
+        const rows = queryWithParams(db,
           `SELECT id FROM memories WHERE project = ? AND title = ?`,
           [project, d.title]
-        ));
+        );
         dupeIds.push(...rows.map((r) => r.id));
       }
       issues.push({
@@ -104,12 +106,12 @@ function runHealthCheck(db, project) {
   // 3. stale_sessions: 24시간 이상 'active' 상태인 세션
   try {
     const staleThreshold = Date.now() - 86400000; // 24시간 (ms)
-    const stale = rowsToObjects(db.exec(
+    const stale = queryWithParams(db,
       `SELECT id, session_id
        FROM sessions
        WHERE status = 'active' AND started_at_epoch < ?`,
       [staleThreshold]
-    ));
+    );
     if (stale.length > 0) {
       issues.push({
         severity: 'critical',
@@ -124,7 +126,7 @@ function runHealthCheck(db, project) {
 
   // 4. empty_summaries: 요약 필드가 모두 비어있는 요약
   try {
-    const empty = rowsToObjects(db.exec(
+    const empty = queryWithParams(db,
       `SELECT id
        FROM summaries
        WHERE project = ?
@@ -133,7 +135,7 @@ function runHealthCheck(db, project) {
          AND (what_learned IS NULL OR what_learned = '')
          AND (next_steps IS NULL OR next_steps = '')`,
       [project]
-    ));
+    );
     if (empty.length > 0) {
       issues.push({
         severity: 'info',
@@ -148,13 +150,13 @@ function runHealthCheck(db, project) {
 
   // 5. type_imbalance: 특정 타입에 80%+ 집중 (최소 5개 이상일 때)
   try {
-    const typeCounts = rowsToObjects(db.exec(
+    const typeCounts = queryWithParams(db,
       `SELECT type, COUNT(*) as cnt
        FROM memories
        WHERE project = ?
        GROUP BY type`,
       [project]
-    ));
+    );
     if (typeCounts.length > 0) {
       const total = typeCounts.reduce((sum, t) => sum + t.cnt, 0);
       for (const tc of typeCounts) {
@@ -175,7 +177,7 @@ function runHealthCheck(db, project) {
 
   // 6. missing_files: files_involved가 비어있는 코드 변경 관련 메모리
   try {
-    const missing = rowsToObjects(db.exec(
+    const missing = queryWithParams(db,
       `SELECT id
        FROM memories
        WHERE project = ?
@@ -184,7 +186,7 @@ function runHealthCheck(db, project) {
               OR content LIKE '%Edit%' OR content LIKE '%Write%'
               OR title LIKE '%수정%' OR title LIKE '%추가%' OR title LIKE '%리팩%')`,
       [project]
-    ));
+    );
     if (missing.length > 0) {
       issues.push({
         severity: 'warning',
@@ -199,12 +201,12 @@ function runHealthCheck(db, project) {
 
   // 7. sparse_memories: content가 50자 미만인 메모리
   try {
-    const sparse = rowsToObjects(db.exec(
+    const sparse = queryWithParams(db,
       `SELECT id
        FROM memories
        WHERE project = ? AND LENGTH(content) < 50`,
       [project]
-    ));
+    );
     if (sparse.length > 0) {
       issues.push({
         severity: 'info',

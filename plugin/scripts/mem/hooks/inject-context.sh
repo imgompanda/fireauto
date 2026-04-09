@@ -32,7 +32,7 @@ if [ "$DASHBOARD" = "null" ] || [ -z "$DASHBOARD" ]; then
   fi
 fi
 
-[ -z "$DASHBOARD" ] || [ "$DASHBOARD" = "null" ] && exit 0
+if [ -z "$DASHBOARD" ] || [ "$DASHBOARD" = "null" ]; then exit 0; fi
 
 # 프로젝트 상태 마크다운 생성
 CONTEXT=$(echo "$DASHBOARD" | node -e "
@@ -123,7 +123,8 @@ process.stdin.on('end',()=>{
 # .claude/CLAUDE.md에 주입 (기존 "자동 생성" 섹션 교체)
 if [ -f "$PROJECT_CLAUDE_MD" ]; then
   # 기존 자동 생성 섹션 제거 (## 현재 프로젝트 상태 ~ 다음 ## 또는 EOF)
-  TEMP=$(mktemp)
+  TEMP=$(mktemp "${TMPDIR:-/tmp}/fireauto-ctx.XXXXXX")
+  trap 'rm -f "$TEMP"' EXIT INT TERM
   PROJECT_CLAUDE_MD="$PROJECT_CLAUDE_MD" TEMP_FILE="$TEMP" node -e "
     const fs=require('fs');
     let content=fs.readFileSync(process.env.PROJECT_CLAUDE_MD,'utf8');

@@ -68,7 +68,7 @@ esac
 SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
 PROJECT=$(basename "$(pwd)")
 
-PAYLOAD=$(echo "$INPUT" | node -e "
+PAYLOAD=$(echo "$INPUT" | SESSION_ID="$SESSION_ID" PROJECT="$PROJECT" node -e "
   let d='';
   process.stdin.on('data',c=>d+=c);
   process.stdin.on('end',()=>{
@@ -79,8 +79,8 @@ PAYLOAD=$(echo "$INPUT" | node -e "
       const toolOutput=typeof j.tool_output==='object'?JSON.stringify(j.tool_output):(j.tool_output||'');
       const filePath=j.tool_input?.file_path||j.tool_input?.command||'';
       const payload={
-        session_id:'${SESSION_ID}',
-        project:'${PROJECT}',
+        session_id:process.env.SESSION_ID,
+        project:process.env.PROJECT,
         type:'pattern',
         title:toolName+': '+(filePath.split('/').pop()||'').slice(0,80),
         content:toolName+' on '+filePath+'\n\nInput: '+toolInput.slice(0,500)+'\nOutput: '+toolOutput.slice(0,500),

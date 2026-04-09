@@ -5,7 +5,7 @@
 WORKER_URL="http://localhost:37888"
 MEM_DIR="$HOME/.fireauto-mem"
 PID_FILE="$HOME/.fireauto-mem/worker.pid"
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")")}"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../../../.." && pwd)}"
 
 # Worker 싱글턴 보장 — 이미 살아있으면 재사용
 WORKER_ALIVE=false
@@ -35,16 +35,16 @@ if [ "$WORKER_ALIVE" = false ]; then
   echo "[fireauto-mem] Worker 시작 중..." >&2
 
   # 좀비 프로세스만 정리 (포트 점유하지만 health에 응답 안 하면 좀비)
-  EXISTING_PID=$(lsof -ti:37888 2>/dev/null)
+  EXISTING_PID=$(lsof -ti:37888 2>/dev/null || true)
   if [ -n "$EXISTING_PID" ]; then
     echo "[fireauto-mem] 좀비 Worker(PID $EXISTING_PID) 정리" >&2
-    kill -9 $EXISTING_PID 2>/dev/null
-    sleep 0.5
+    kill -9 $EXISTING_PID 2>/dev/null || true
+    sleep 1
   fi
 
   # node_modules 경로 설정 — PLUGIN_DATA 우선, fallback으로 fireauto-mem
-  PLUGIN_DATA_DIR="${CLAUDE_PLUGIN_DATA:-$HOME/.claude/plugins/data/fireauto-imgompanda}"
-  NODE_PATH="$PLUGIN_DATA_DIR/node_modules:$MEM_DIR/node_modules"
+  PLUGIN_DATA_DIR="${CLAUDE_PLUGIN_DATA:-$HOME/.fireauto-mem}"
+  NODE_PATH="$PLUGIN_DATA_DIR/node_modules:$MEM_DIR/node_modules:$PLUGIN_ROOT/scripts/mem/node_modules"
   DB_PATH="$PLUGIN_DATA_DIR/fireauto-mem.db"
   export NODE_PATH DB_PATH
 
@@ -52,12 +52,12 @@ if [ "$WORKER_ALIVE" = false ]; then
   node "$PLUGIN_ROOT/scripts/mem/worker.cjs" start &
 
   # 시작 대기 (최대 10초)
-  for i in $(seq 1 20); do
+  i=0; while [ $i -lt 20 ]; do i=$((i+1))
     if curl -sf "$WORKER_URL/api/health" > /dev/null 2>&1; then
       echo "[fireauto-mem] Worker 준비됨" >&2
       break
     fi
-    sleep 0.5
+    sleep 1
   done
 fi
 

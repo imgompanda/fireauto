@@ -1,6 +1,6 @@
 {
   "name": "fireauto",
-  "version": "2.2.8",
+  "version": "3.0.0",
   "description": "AI 개발 하네스 — 설치 한 번이면 AI가 PRD, 지식 축적, 실수 학습, 복기까지 자동으로. Karpathy LLM Knowledge Base + Claude Code 하네스 원칙.",
   "author": {
     "name": "FreAiner"

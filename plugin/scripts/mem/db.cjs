@@ -219,6 +219,23 @@ function rowsToObjects(results) {
 }
 
 /**
+ * sql.js prepare/bind 패턴으로 파라미터 바인딩된 SELECT 쿼리 실행.
+ * db.exec(sql, params)는 params를 무시하므로 반드시 이 함수를 사용할 것.
+ * @param {import('sql.js').Database} db
+ * @param {string} sql
+ * @param {Array} params
+ * @returns {Object[]}
+ */
+function queryWithParams(db, sql, params) {
+  const stmt = db.prepare(sql);
+  if (params && params.length) stmt.bind(params);
+  const results = [];
+  while (stmt.step()) results.push(stmt.getAsObject());
+  stmt.free();
+  return results;
+}
+
+/**
  * 메모리 행의 JSON 필드를 파싱
  * @param {Object} obj - raw memory row
  * @returns {Object} parsed memory object
@@ -338,7 +355,7 @@ function listMemories(db, { type, project, limit = 20 } = {}) {
     if (project) { sql += ' AND project = ?'; params.push(project); }
     sql += ' ORDER BY created_at_epoch DESC LIMIT ?';
     params.push(limit);
-    return rowsToObjects(db.exec(sql, params));
+    return queryWithParams(db, sql, params);
   } catch (err) {
     throw new Error(`Failed to list memories: ${err.message}`);
   }
@@ -373,7 +390,7 @@ function searchMemories(db, { query, type, project, limit = 20 }) {
     sql += ' ORDER BY m.created_at_epoch DESC LIMIT ?';
     params.push(limit);
 
-    return rowsToObjects(db.exec(sql, params));
+    return queryWithParams(db, sql, params);
   } catch {
     // FTS 매치 실패 시 LIKE fallback
     try {
@@ -396,7 +413,7 @@ function searchMemories(db, { query, type, project, limit = 20 }) {
       sql += ' ORDER BY created_at_epoch DESC LIMIT ?';
       params.push(limit);
 
-      return rowsToObjects(db.exec(sql, params));
+      return queryWithParams(db, sql, params);
     } catch (fallbackErr) {
       throw new Error(`Failed to search memories: ${fallbackErr.message}`);
     }
@@ -411,7 +428,7 @@ function searchMemories(db, { query, type, project, limit = 20 }) {
  */
 function getMemoryById(db, id) {
   try {
-    const rows = rowsToObjects(db.exec('SELECT * FROM memories WHERE id = ?', [id]));
+    const rows = queryWithParams(db, 'SELECT * FROM memories WHERE id = ?', [id]);
     if (!rows.length) return null;
 
     return parseMemoryRow(rows[0]);
@@ -431,7 +448,7 @@ function getMemoriesByIds(db, ids) {
 
   try {
     const placeholders = ids.map(() => '?').join(',');
-    const rows = rowsToObjects(db.exec(`SELECT * FROM memories WHERE id IN (${placeholders})`, ids));
+    const rows = queryWithParams(db, `SELECT * FROM memories WHERE id IN (${placeholders})`, ids);
 
     return rows.map(parseMemoryRow);
   } catch (err) {
@@ -459,7 +476,7 @@ function getTimeline(db, { days = 7, project } = {}) {
       memParams.push(project);
     }
 
-    const memRows = rowsToObjects(db.exec(memSql, memParams));
+    const memRows = queryWithParams(db, memSql, memParams);
     const memories = memRows.map((obj) => {
       const parsed = parseMemoryRow(obj);
       return { source: 'memory', data: parsed, epoch: parsed.created_at_epoch };
@@ -473,7 +490,7 @@ function getTimeline(db, { days = 7, project } = {}) {
       sumParams.push(project);
     }
 
-    const sumRows = rowsToObjects(db.exec(sumSql, sumParams));
+    const sumRows = queryWithParams(db, sumSql, sumParams);
     const summaries = sumRows.map((obj) => ({
       source: 'summary', data: obj, epoch: obj.created_at_epoch,
     }));
@@ -505,7 +522,7 @@ function initSession(db, { session_id, project }) {
 
   try {
     // 기존 세션 확인
-    const existing = rowsToObjects(db.exec('SELECT * FROM sessions WHERE session_id = ?', [session_id]));
+    const existing = queryWithParams(db, 'SELECT * FROM sessions WHERE session_id = ?', [session_id]);
     if (existing.length) return existing[0];
 
     // 새 세션 생성
@@ -516,7 +533,7 @@ function initSession(db, { session_id, project }) {
       [session_id, project, formatEpoch(epoch), epoch]
     );
 
-    const rows = rowsToObjects(db.exec('SELECT * FROM sessions WHERE session_id = ?', [session_id]));
+    const rows = queryWithParams(db, 'SELECT * FROM sessions WHERE session_id = ?', [session_id]);
     return rows[0];
   } catch (err) {
     throw new Error(`Failed to init session: ${err.message}`);
@@ -601,7 +618,7 @@ function getSummaries(db, { project, limit = 20 } = {}) {
     sql += ' ORDER BY created_at_epoch DESC LIMIT ?';
     params.push(limit);
 
-    return rowsToObjects(db.exec(sql, params));
+    return queryWithParams(db, sql, params);
   } catch (err) {
     throw new Error(`Failed to get summaries: ${err.message}`);
   }
@@ -648,10 +665,10 @@ function insertRelation(db, { source_id, target_id, relation_type, confidence = 
  */
 function getRelations(db, memoryId) {
   try {
-    const rows = rowsToObjects(db.exec(
+    const rows = queryWithParams(db,
       `SELECT * FROM relations WHERE source_id = ? OR target_id = ? ORDER BY created_at_epoch DESC`,
       [memoryId, memoryId]
-    ));
+    );
     return rows;
   } catch (err) {
     throw new Error(`Failed to get relations for memory ${memoryId}: ${err.message}`);
@@ -675,10 +692,10 @@ function getRelatedMemories(db, memoryId, depth = 1) {
       if (!currentIds.length) break;
 
       const placeholders = currentIds.map(() => '?').join(',');
-      const relations = rowsToObjects(db.exec(
+      const relations = queryWithParams(db,
         `SELECT * FROM relations WHERE source_id IN (${placeholders}) OR target_id IN (${placeholders})`,
         [...currentIds, ...currentIds]
-      ));
+      );
 
       const nextIds = [];
       for (const rel of relations) {
@@ -727,10 +744,10 @@ function getMemoriesForCompile(db, project) {
   }
 
   try {
-    const rows = rowsToObjects(db.exec(
+    const rows = queryWithParams(db,
       'SELECT * FROM memories WHERE project = ? ORDER BY created_at_epoch ASC',
       [project]
-    ));
+    );
     return rows.map(parseMemoryRow);
   } catch (err) {
     throw new Error(`Failed to get memories for compile: ${err.message}`);
@@ -772,7 +789,7 @@ function createProject(db, { name, description, prd_path }) {
  */
 function getProject(db, id) {
   try {
-    const rows = rowsToObjects(db.exec('SELECT * FROM projects WHERE id = ?', [id]));
+    const rows = queryWithParams(db, 'SELECT * FROM projects WHERE id = ?', [id]);
     return rows.length ? rows[0] : null;
   } catch (err) {
     throw new Error(`Failed to get project ${id}: ${err.message}`);
@@ -792,7 +809,7 @@ function listProjects(db, { status, limit = 50 } = {}) {
     if (status) { sql += ' AND status = ?'; params.push(status); }
     sql += ' ORDER BY created_at_epoch DESC LIMIT ?';
     params.push(limit);
-    return rowsToObjects(db.exec(sql, params));
+    return queryWithParams(db, sql, params);
   } catch (err) {
     throw new Error(`Failed to list projects: ${err.message}`);
   }
@@ -852,7 +869,7 @@ function createMilestone(db, { project_id, title, description, order_index = 0, 
  */
 function getMilestone(db, id) {
   try {
-    const rows = rowsToObjects(db.exec('SELECT * FROM milestones WHERE id = ?', [id]));
+    const rows = queryWithParams(db, 'SELECT * FROM milestones WHERE id = ?', [id]);
     return rows.length ? rows[0] : null;
   } catch (err) {
     throw new Error(`Failed to get milestone ${id}: ${err.message}`);
@@ -872,7 +889,7 @@ function listMilestones(db, projectId, { status } = {}) {
     const params = [projectId];
     if (status) { sql += ' AND status = ?'; params.push(status); }
     sql += ' ORDER BY order_index ASC';
-    return rowsToObjects(db.exec(sql, params));
+    return queryWithParams(db, sql, params);
   } catch (err) {
     throw new Error(`Failed to list milestones: ${err.message}`);
   }
@@ -938,7 +955,7 @@ function createTask(db, { milestone_id, project_id, title, description, priority
  */
 function getTask(db, id) {
   try {
-    const rows = rowsToObjects(db.exec('SELECT * FROM tasks WHERE id = ?', [id]));
+    const rows = queryWithParams(db, 'SELECT * FROM tasks WHERE id = ?', [id]);
     return rows.length ? rows[0] : null;
   } catch (err) {
     throw new Error(`Failed to get task ${id}: ${err.message}`);
@@ -959,7 +976,7 @@ function listTasks(db, { milestone_id, project_id, status } = {}) {
     if (project_id) { sql += ' AND project_id = ?'; params.push(project_id); }
     if (status) { sql += ' AND status = ?'; params.push(status); }
     sql += ' ORDER BY order_index ASC';
-    return rowsToObjects(db.exec(sql, params));
+    return queryWithParams(db, sql, params);
   } catch (err) {
     throw new Error(`Failed to list tasks: ${err.message}`);
   }
@@ -993,14 +1010,14 @@ function updateTaskStatus(db, id, status) {
  */
 function getProjectProgress(db, projectId) {
   try {
-    const taskResult = db.exec(
+    const taskRows = queryWithParams(db,
       `SELECT
          COUNT(*) as total,
          SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
        FROM tasks WHERE project_id = ?`,
       [projectId]
     );
-    const milestoneResult = db.exec(
+    const milestoneRows = queryWithParams(db,
       `SELECT
          COUNT(*) as total,
          SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
@@ -1008,10 +1025,10 @@ function getProjectProgress(db, projectId) {
       [projectId]
     );
 
-    const totalTasks = taskResult.length ? taskResult[0].values[0][0] : 0;
-    const completedTasks = taskResult.length ? (taskResult[0].values[0][1] || 0) : 0;
-    const totalMilestones = milestoneResult.length ? milestoneResult[0].values[0][0] : 0;
-    const completedMilestones = milestoneResult.length ? (milestoneResult[0].values[0][1] || 0) : 0;
+    const totalTasks = taskRows.length ? taskRows[0].total : 0;
+    const completedTasks = taskRows.length ? (taskRows[0].completed || 0) : 0;
+    const totalMilestones = milestoneRows.length ? milestoneRows[0].total : 0;
+    const completedMilestones = milestoneRows.length ? (milestoneRows[0].completed || 0) : 0;
 
     return {
       total_tasks: totalTasks,
@@ -1078,7 +1095,7 @@ function searchSkills(db, { query, category, limit = 20 } = {}) {
     }
     sql += ' ORDER BY usage_count DESC, created_at_epoch DESC LIMIT ?';
     params.push(limit);
-    return rowsToObjects(db.exec(sql, params));
+    return queryWithParams(db, sql, params);
   } catch (err) {
     throw new Error(`Failed to search skills: ${err.message}`);
   }
@@ -1092,7 +1109,7 @@ function searchSkills(db, { query, category, limit = 20 } = {}) {
  */
 function getSkill(db, id) {
   try {
-    const rows = rowsToObjects(db.exec('SELECT * FROM skills WHERE id = ?', [id]));
+    const rows = queryWithParams(db, 'SELECT * FROM skills WHERE id = ?', [id]);
     return rows.length ? rows[0] : null;
   } catch (err) {
     throw new Error(`Failed to get skill ${id}: ${err.message}`);
@@ -1174,7 +1191,7 @@ function searchMistakes(db, { project, query, limit = 20 } = {}) {
     }
     sql += ' ORDER BY created_at_epoch DESC LIMIT ?';
     params.push(limit);
-    const rows = rowsToObjects(db.exec(sql, params));
+    const rows = queryWithParams(db, sql, params);
     return rows.map(row => {
       row.files_involved = safeJsonParse(row.files_involved, []);
       return row;
@@ -1216,7 +1233,7 @@ function listMistakes(db, { project, limit = 20 } = {}) {
     }
     sql += ' ORDER BY created_at_epoch DESC LIMIT ?';
     params.push(limit);
-    const rows = rowsToObjects(db.exec(sql, params));
+    const rows = queryWithParams(db, sql, params);
     return rows.map(row => {
       row.files_involved = safeJsonParse(row.files_involved, []);
       return row;

@@ -436,6 +436,16 @@ async function startServer() {
     });
   }
 
+  // db.exec(sql, params)는 params를 무시하므로 prepare/bind 사용
+  function _qp(sql, params) {
+    const stmt = db.prepare(sql);
+    if (params && params.length) stmt.bind(params);
+    const results = [];
+    while (stmt.step()) results.push(stmt.getAsObject());
+    stmt.free();
+    return results;
+  }
+
   // ── GET /api/projects ─────────────────────────────────
   app.get('/api/projects', async (_req, res) => {
     try {
@@ -467,16 +477,16 @@ async function startServer() {
         return res.json(detail);
       }
       // fallback: direct DB query with milestones + tasks + progress
-      const projects = _rows(db.exec('SELECT * FROM projects WHERE id = ?', [id]));
+      const projects = _qp('SELECT * FROM projects WHERE id = ?', [id]);
       if (!projects.length) return res.status(404).json({ error: 'Not found' });
       const project = projects[0];
 
-      const milestones = _rows(db.exec(
+      const milestones = _qp(
         'SELECT * FROM milestones WHERE project_id = ? ORDER BY order_index ASC, id ASC', [id]
-      ));
-      const tasks = _rows(db.exec(
+      );
+      const tasks = _qp(
         'SELECT * FROM tasks WHERE project_id = ? ORDER BY id ASC', [id]
-      ));
+      );
 
       const totalTasks = tasks.length;
       const completedTasks = tasks.filter(t => t.status === 'completed').length;
@@ -562,10 +572,10 @@ async function startServer() {
       if (pm && pm.listMilestones) {
         return res.json({ milestones: pm.listMilestones(db, projectId) });
       }
-      const milestones = _rows(db.exec(
+      const milestones = _qp(
         'SELECT * FROM milestones WHERE project_id = ? ORDER BY order_index ASC, id ASC',
         [projectId]
-      ));
+      );
       res.json({ milestones });
     } catch (err) {
       console.error('[fireauto-mem] GET /api/projects/:projectId/milestones error:', err.message);
@@ -606,10 +616,10 @@ async function startServer() {
       if (pm && pm.listTasks) {
         return res.json({ tasks: pm.listTasks(db, projectId) });
       }
-      const tasks = _rows(db.exec(
+      const tasks = _qp(
         'SELECT * FROM tasks WHERE project_id = ? ORDER BY id ASC',
         [projectId]
-      ));
+      );
       res.json({ tasks });
     } catch (err) {
       console.error('[fireauto-mem] GET /api/projects/:projectId/tasks error:', err.message);
@@ -635,7 +645,7 @@ async function startServer() {
         params.push(parseInt(projectId, 10));
       }
       sql += ' ORDER BY id ASC LIMIT 1';
-      const tasks = _rows(db.exec(sql, params));
+      const tasks = params.length ? _qp(sql, params) : _rows(db.exec(sql));
       res.json({ task: tasks[0] || null });
     } catch (err) {
       console.error('[fireauto-mem] GET /api/tasks/next error:', err.message);
@@ -689,27 +699,24 @@ async function startServer() {
 
       // fallback: 직접 SQL로 마일스톤-태스크 중첩 구조 생성
       // 1. 프로젝트 조회
-      const projects = _rows(db.exec(
-        projectId
-          ? 'SELECT * FROM projects WHERE id = ?'
-          : "SELECT * FROM projects WHERE status = 'active' ORDER BY created_at_epoch DESC LIMIT 1",
-        projectId ? [projectId] : []
-      ));
+      const projects = projectId
+        ? _qp('SELECT * FROM projects WHERE id = ?', [projectId])
+        : _rows(db.exec("SELECT * FROM projects WHERE status = 'active' ORDER BY created_at_epoch DESC LIMIT 1"));
       if (!projects.length) return res.json({ error: 'No project found' });
       const project = projects[0];
 
       // 2. 마일스톤 + 태스크 중첩
-      const milestones = _rows(db.exec(
+      const milestones = _qp(
         'SELECT * FROM milestones WHERE project_id = ? ORDER BY order_index ASC, id ASC',
         [project.id]
-      ));
+      );
       let totalTasks = 0, completedTasks = 0;
 
       for (const m of milestones) {
-        m.tasks = _rows(db.exec(
+        m.tasks = _qp(
           'SELECT * FROM tasks WHERE milestone_id = ? ORDER BY order_index ASC, id ASC',
           [m.id]
-        ));
+        );
         const done = m.tasks.filter(t => t.status === 'completed').length;
         m.progress = m.tasks.length ? Math.round(done / m.tasks.length * 100) : 0;
         totalTasks += m.tasks.length;

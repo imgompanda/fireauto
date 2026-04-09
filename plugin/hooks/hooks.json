@@ -1,5 +1,5 @@
 {
-  "description": "fireauto hooks - 루프 + 메모리 + 자기학습 + 복기",
+  "description": "fireauto hooks - 루프 + 메모리 + 자기학습 + 복기 (cross-platform Node.js)",
   "hooks": {
     "SessionStart": [
       {
@@ -7,12 +7,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/session-start.sh",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/session-start.cjs",
             "timeout": 30
           },
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/inject-context.sh",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/inject-context.cjs",
             "timeout": 10
           }
         ]
@@ -24,18 +24,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/save-observation.sh",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/save-observation.cjs",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/post-tool-check.sh",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/post-tool-check.cjs",
             "timeout": 5,
             "async": true
           },
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/auto-lint.sh",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/auto-lint.cjs",
             "timeout": 10
           }
         ]
@@ -47,7 +47,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.sh",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.cjs",
             "timeout": 15
           }
         ]
@@ -57,7 +57,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/save-summary.sh",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/mem/hooks/save-summary.cjs",
             "timeout": 15
           }
         ]

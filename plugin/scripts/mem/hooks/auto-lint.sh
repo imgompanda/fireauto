@@ -36,19 +36,19 @@ case "$EXT" in
     ;;
   ts|tsx)
     # TypeScript — npx tsc가 있으면 실행
-    if command -v npx &>/dev/null; then
+    if command -v npx > /dev/null 2>&1; then
       ERRORS=$(npx tsc --noEmit "$FILE_PATH" 2>&1 | head -10) || true
     fi
     ;;
   py)
     # Python 문법 체크
-    ERRORS=$(python3 -c "import py_compile; py_compile.compile('$FILE_PATH', doraise=True)" 2>&1) || true
+    ERRORS=$(python3 -m py_compile "$FILE_PATH" 2>&1) || true
     ;;
   sh|bash)
     ERRORS=$(bash -n "$FILE_PATH" 2>&1) || true
     ;;
   json)
-    ERRORS=$(node -e "JSON.parse(require('fs').readFileSync('$FILE_PATH','utf8'))" 2>&1) || true
+    ERRORS=$(node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'))" "$FILE_PATH" 2>&1) || true
     ;;
 esac
 

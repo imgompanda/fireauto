@@ -220,7 +220,7 @@ async function callHaiku(promptText) {
       prompt: messageGenerator(),
       options: {
         model: MODEL,
-        cwd: process.env.HOME || '/tmp',
+        cwd: process.env.HOME || process.env.USERPROFILE || require('os').homedir(),
         disallowedTools: [
           'Bash', 'Read', 'Write', 'Edit',
           'Grep', 'Glob', 'WebFetch', 'WebSearch',
