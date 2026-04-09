@@ -98,9 +98,19 @@ async function safeCall(fn) {
   try {
     return await fn();
   } catch (err) {
-    const msg = err.code === 'ECONNREFUSED'
-      ? 'Worker 서버에 연결할 수 없습니다. `node worker.cjs start`로 Worker를 먼저 실행하세요.'
-      : `Worker 오류: ${err.message}`;
+    if (err.code === 'ECONNREFUSED') {
+      // Worker가 죽었을 수 있음 — 재시작 시도
+      console.error(LOG_PREFIX, 'Worker down, attempting restart...');
+      try {
+        await ensureWorker();
+        return await fn(); // 재시도
+      } catch (retryErr) {
+        const msg = `Worker 재시작 실패: ${retryErr.message}`;
+        console.error(LOG_PREFIX, msg);
+        return { content: [{ type: 'text', text: msg }], isError: true };
+      }
+    }
+    const msg = `Worker 오류: ${err.message}`;
     console.error(LOG_PREFIX, msg);
     return { content: [{ type: 'text', text: msg }], isError: true };
   }
@@ -109,9 +119,68 @@ async function safeCall(fn) {
 // ── Parent process heartbeat (zombie prevention) ──────────────
 // main() 연결 후에 시작하도록 main 안으로 이동
 
+// ── Worker Auto-Start ───────────────────────────────────────
+
+/**
+ * Worker가 꺼져있으면 자동 시작 (MCP 서버가 뜨면 Worker도 보장)
+ */
+async function ensureWorker() {
+  try {
+    await callWorker('GET', '/api/health');
+    console.error(LOG_PREFIX, 'Worker already running');
+    return;
+  } catch {
+    // Worker가 안 돌고 있음 — 시작
+  }
+
+  const { spawn } = require('child_process');
+  const workerPath = require('path').join(__dirname, 'worker.cjs');
+  const fs = require('fs');
+  const os = require('os');
+
+  if (!fs.existsSync(workerPath)) {
+    console.error(LOG_PREFIX, 'worker.cjs not found:', workerPath);
+    return;
+  }
+
+  const memDir = require('path').join(os.homedir(), '.fireauto-mem');
+  const pluginData = process.env.CLAUDE_PLUGIN_DATA || memDir;
+  const delimiter = process.platform === 'win32' ? ';' : ':';
+  const nodePaths = [
+    process.env.NODE_PATH || '',
+    require('path').join(pluginData, 'node_modules'),
+    require('path').join(memDir, 'node_modules'),
+    require('path').join(__dirname, 'node_modules'),
+  ].filter(Boolean).join(delimiter);
+
+  const child = spawn(process.execPath, [workerPath, 'start'], {
+    env: { ...process.env, NODE_PATH: nodePaths, DB_PATH: process.env.DB_PATH || require('path').join(pluginData, 'fireauto-mem.db') },
+    detached: true,
+    stdio: 'ignore',
+    windowsHide: true,
+  });
+  child.unref();
+
+  console.error(LOG_PREFIX, 'Worker starting (PID', child.pid, ')...');
+
+  // 최대 10초 대기
+  for (let i = 0; i < 20; i++) {
+    await new Promise(r => setTimeout(r, 500));
+    try {
+      await callWorker('GET', '/api/health');
+      console.error(LOG_PREFIX, 'Worker ready');
+      return;
+    } catch { /* 아직 안 뜸 */ }
+  }
+  console.error(LOG_PREFIX, 'Worker start timeout — tools will retry on demand');
+}
+
 // ── Main ─────────────────────────────────────────────────────
 
 async function main() {
+  // Worker 자동 시작 — MCP 서버가 뜨면 Worker도 보장
+  await ensureWorker();
+
   const server = new McpServer({
     name: 'fireauto-mem',
     version: '1.0.0',
