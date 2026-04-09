@@ -73,9 +73,10 @@ Built on Andrej Karpathy's **LLM Knowledge Base** pattern and Claude Code team's
 # Run inside Claude Code
 /plugin marketplace add imgompanda/fireauto
 /plugin install fireauto@fireauto
+/reload-plugins
 ```
 
-Done. You can use commands right away.
+Done. **Run `/reload-plugins` to activate MCP tools and hooks.**
 
 > If GitHub doesn't work: `git clone https://github.com/imgompanda/fireauto.git` -> `/plugin marketplace add ./fireauto` -> `/plugin install fireauto@fireauto`
 
