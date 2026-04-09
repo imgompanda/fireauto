@@ -2,7 +2,8 @@
   "mcpServers": {
     "fireauto-mem": {
       "type": "stdio",
-      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/mem/mcp-server.cjs",
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/mem/mcp-server.cjs"],
       "env": {
         "NODE_PATH": "${CLAUDE_PLUGIN_DATA}/node_modules",
         "DB_PATH": "${CLAUDE_PLUGIN_DATA}/fireauto-mem.db"
